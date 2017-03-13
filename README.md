@@ -17,7 +17,10 @@ Usage:
 make COMMAND [params ...]
  
 commands:
-    backup-dir dir=<directory to backup> filepath=</mnt/backup-file.tar.gz>   
+    backup-dir dir=<directory to backup> filepath=</mnt/backup-file.tar.gz>
+    rotate dir=<path to directory> days=<# of days> 
     mirror-s3 filepath=</path/to/archive.tar.gz> key_id=<AWS KEY ID> access_key=<AWS ACCESS KEY> bucket=<AWS S3 BUCKET NAME> region=<AWS REGION>   
-
+    
+default param values:
+    days 7
 ```
