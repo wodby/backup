@@ -1,4 +1,4 @@
--include env_make
+-include .env
 
 VERSION ?= latest
 

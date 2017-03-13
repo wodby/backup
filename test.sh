@@ -6,8 +6,7 @@ if [[ -n ${DEBUG} ]]; then
   set -x
 fi
 
-AWS_KEY_ID=AKIAJQ73RDKGCOGMX7KQ
-AWS_ACCESS_KEY=Rhp7c4WZtm1bLXVoHCBRudwVDEF/7RNr/CQ3xbJD
+AWS_KEY_ID=AKIAJ72G4XDNC7NMAOCA
 AWS_S3_BUCKET=wodby-mirroring-testing
 AWS_S3_REGION=us-east-1
 FILEPATH=/mnt/backup-$RANDOM.tar.gz
