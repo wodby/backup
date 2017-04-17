@@ -1,4 +1,4 @@
-.PHONY: backup-dir mirror-s3 check-ready check-live
+.PHONY: backup-dir mirror-s3 rotate delete check-ready check-live
 
 check_defined = \
     $(strip $(foreach 1,$1, \
@@ -8,12 +8,14 @@ __check_defined = \
       $(error Required parameter is missing: $1$(if $2, ($2))))
 
 days ?= 7
+zip ?= ""
+exclude ?= ""
 
 default: backup-dir
 
 backup-dir:
 	$(call check_defined, dir, filepath)
-	cd $(dir) && tar -zcf $(filepath) .
+	backup-dir.sh $(dir) $(filepath) $(zip) "$(exclude)"
 
 mirror-s3:
 	$(call check_defined, key_id, access_key, bucket, region, filepath)
@@ -22,6 +24,10 @@ mirror-s3:
 rotate:
 	$(call check_defined, dir)
 	find $(dir) -mindepth 1 -mtime +$(days) -delete
+
+delete:
+	$(call check_defined, filepath)
+	rm -f $(filepath)
 
 check-ready:
 	exit 0

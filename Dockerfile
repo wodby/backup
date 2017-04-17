@@ -6,6 +6,7 @@ RUN apk add --no-cache \
         bash \
         ca-certificates \
         make \
+        tar \
         tzdata \
         wget && \
 
@@ -13,7 +14,7 @@ RUN apk add --no-cache \
     wget -qO- https://github.com/wodby/go-aws-s3/releases/download/${GO_AWS_S3_VER}/go-aws-s3.tar.gz \
         | tar xz -C /usr/local/bin
 
-COPY actions.mk /usr/local/bin
+COPY actions/ /usr/local/bin/
 COPY docker-entrypoint.sh /
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
