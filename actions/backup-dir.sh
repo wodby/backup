@@ -14,7 +14,7 @@ exclude_paths=$4
 cd "${dir}"
 
 exclude=""
-options="-cvf"
+options="-cf"
 
 if [[ -n "${zip}" ]]; then
     options="${options}z"
