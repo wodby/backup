@@ -10,12 +10,13 @@ __check_defined = \
 days ?= 7
 zip ?= ""
 exclude ?= ""
+mark = ""
 
 default: backup-dir
 
 backup-dir:
 	$(call check_defined, dir, filepath)
-	backup-dir.sh $(dir) $(filepath) $(zip) "$(exclude)"
+	backup-dir.sh $(dir) $(filepath) $(zip) "$(exclude)" "$(mark)"
 
 mirror-s3:
 	$(call check_defined, key_id, access_key, bucket, region, filepath)

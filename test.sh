@@ -6,21 +6,21 @@ if [[ -n "${DEBUG}" ]]; then
     set -x
 fi
 
-AWS_KEY_ID=AKIAJ72G4XDNC7NMAOCA
-AWS_S3_BUCKET=wodby-mirroring-testing
-AWS_S3_REGION=us-east-1
-FILEPATH=/mnt/backup-$RANDOM.tar
-FILEPATH_ZIP=/mnt/backup-$RANDOM.tar.gz
+aws_key_id=AKIAJ72G4XDNC7NMAOCA
+aws_s3_bucket=wodby-mirroring-testing
+aws_s3_region=us-east-1
+archive_path=/mnt/backup-$RANDOM.tar
+archive_path_zip=/mnt/backup-$RANDOM.tar.gz
 
-docker run --rm -v /tmp:/mnt "${IMAGE}" make backup-dir \
-    exclude="./engines/libcswift.so;./engines/libgmp.so" dir=/usr/lib filepath="${FILEPATH}"
+docker run --rm -v /tmp:/mnt -e DEBUG=1 "${IMAGE}" make backup-dir \
+    exclude="./engines/libcswift.so;./engines/libgmp.so" dir=/usr/lib filepath="${archive_path}" mark=".wodby"
 
 docker run --rm -v /tmp:/mnt "${IMAGE}" make mirror-s3 \
-    filepath="${FILEPATH}" key_id="${AWS_KEY_ID}" access_key="${AWS_ACCESS_KEY}" \
-    bucket="${AWS_S3_BUCKET}" region="${AWS_S3_REGION}"
+    filepath="${archive_path}" key_id="${aws_key_id}" access_key="${AWS_ACCESS_KEY}" \
+    bucket="${aws_s3_bucket}" region="${aws_s3_region}"
     
-docker run --rm -v /tmp:/mnt "${IMAGE}" make backup-dir dir=/usr/lib filepath="${FILEPATH_ZIP}"
-docker run --rm -v /tmp:/mnt "${IMAGE}" make delete filepath="${FILEPATH_ZIP}"
+docker run --rm -v /tmp:/mnt "${IMAGE}" make backup-dir dir=/usr/lib filepath="${archive_path_zip}"
+docker run --rm -v /tmp:/mnt "${IMAGE}" make delete filepath="${archive_path_zip}"
 docker run --rm -v /tmp:/mnt "${IMAGE}" mkdir -p /mnt/files
 docker run --rm -v /tmp:/mnt "${IMAGE}" touch -d 201512180130.09 /mnt/files/oldfile
 docker run --rm -v /tmp:/mnt "${IMAGE}" touch /mnt/files/newfile

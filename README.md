@@ -15,11 +15,19 @@ Usage:
 make COMMAND [params ...]
  
 commands:
-    backup-dir dir=<directory to backup> filepath=</mnt/backup-file.tar.gz> zip="" exclude="./dir1;./path/to/file"
-    rotate dir=<path to directory> days=<# of days> 
-    mirror-s3 filepath=</path/to/archive.tar.gz> key_id=<AWS KEY ID> access_key=<AWS ACCESS KEY> bucket=<AWS S3 BUCKET NAME> region=<AWS REGION>   
-    delete filepath=</path/to/file> 
+    backup-dir dir filepath zip exclude mark
+    rotate dir days 
+    mirror-s3 filepath key_id access_key bucket region   
+    delete filepath 
 
 default param values:
     days 7
+        
+EXAMPLES:   
+    backup-dir dir=/home/user/data filepath=/mnt/archive.tar.gz zip="1" exclude="./dir1;./path/to/file"
+    backup-dir dir=/home/user/data filepath=/mnt/archive.tar zip="" mark=".wodby"
+    rotate dir=/tmp/data days=8 
+    mirror-s3 filepath=/mnt/archive.tar key_id=ID access_key=KEY bucket=my-bucket region=us-east-1   
+    delete filepath=/mnt/archive.tar
+    
 ```

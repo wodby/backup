@@ -16,6 +16,13 @@ cd "${dir}"
 exclude=""
 options="-cf"
 
+if [[ -n "${mark}" ]]; then
+    touch "${mark}"
+    chmod 777 "${mark}"
+    ownership=$(stat -c '%U:%G' .)
+    chown "${ownership}" "${mark}"
+fi
+
 if [[ -n "${zip}" ]]; then
     options="${options}z"
 fi
