@@ -3,7 +3,7 @@
 set -e
 
 if [[ -n "${DEBUG}" ]]; then
-  set -x
+    set -x
 fi
 
 dir=$1
@@ -27,6 +27,6 @@ for path in "${ADDR[@]}"; do
     excludes+=("--exclude=\"${path}\"")
 done
 
-tar "${excludes[@]}" "${options}" "${filepath}" .
+tar "${excludes[@]}" --warning=no-file-changed "${options}" "${filepath}" .
 
 stat -c "RESULT=%s" "${filepath}"

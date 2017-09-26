@@ -17,10 +17,3 @@ after_success: |
       make VERSION="$VERSION-$TRAVIS_TAG" release
     fi
   fi
-
-after_failure:
-  - make logs
-
-notifications:
-  email:
-    on_success: never

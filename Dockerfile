@@ -1,6 +1,6 @@
-FROM alpine:3.5
+FROM alpine:3.6
 
-ENV GO_AWS_S3_VER 1.0.0
+ENV GO_AWS_S3_URL "https://github.com/wodby/go-aws-s3/releases/download/1.0.0/go-aws-s3.tar.gz"
 
 RUN apk add --no-cache \
         bash \
@@ -10,9 +10,7 @@ RUN apk add --no-cache \
         tzdata \
         wget && \
 
-    # Install go-aws-s3
-    wget -qO- https://github.com/wodby/go-aws-s3/releases/download/${GO_AWS_S3_VER}/go-aws-s3.tar.gz \
-        | tar xz -C /usr/local/bin
+    wget -qO- "${GO_AWS_S3_URL}" | tar xz -C /usr/local/bin
 
 COPY actions/ /usr/local/bin/
 COPY docker-entrypoint.sh /
