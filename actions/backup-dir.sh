@@ -10,8 +10,9 @@ dir=$1
 filepath=$2
 zip=$3
 exclude_paths=$4
-nice=$5
-ionice=$6
+mark=$5
+nice=$6
+ionice=$7
 
 cd "${dir}"
 
