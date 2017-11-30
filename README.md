@@ -6,7 +6,9 @@
 
 ## Supported tags and respective `Dockerfile` links:
 
-- [`latest` (*Dockerfile*)](https://github.com/wodby/backup/tree/master/Dockerfile)
+* `latest` [_(Dockerfile)_](https://github.com/wodby/backup/tree/master/Dockerfile)
+
+For better reliability we additionally release images with stability tags (`wodby/backup:X.X.X`) which correspond to [git tags](https://github.com/wodby/backup/releases). We **strongly recommend** using images only with stability tags. 
 
 ## Actions
 
@@ -29,6 +31,7 @@ EXAMPLES:
     rotate dir=/tmp/data days=8 
     mirror-s3 filepath=/mnt/archive.tar key_id=ID access_key=KEY bucket=my-bucket region=us-east-1   
     delete filepath=/mnt/archive.tar
+    mark ""
     nice 10
     ionice 7
     

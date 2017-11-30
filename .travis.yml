@@ -1,4 +1,4 @@
-language: python
+language: bash
 
 sudo: required
 
@@ -9,11 +9,12 @@ script:
   - make
 
 after_success: |
-  if [ "$TRAVIS_PULL_REQUEST" == "false" ] && ([ "$TRAVIS_BRANCH" == "master" ] || [ -n "$TRAVIS_TAG" ]); then
-    docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+  if [[ "${TRAVIS_PULL_REQUEST}" == "false" && ("${TRAVIS_BRANCH}" == "master"  || -n "${TRAVIS_TAG}") ]]; then
+    docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+
     make release
 
-    if [ -n "$TRAVIS_TAG" ]; then
-      make VERSION="$VERSION-$TRAVIS_TAG" release
+    if [[ -n "${TRAVIS_TAG}" ]]; then
+      export TAG="${TRAVIS_TAG}"
     fi
   fi

@@ -6,7 +6,6 @@ if [[ -n "${DEBUG}" ]]; then
     set -x
 fi
 
-aws_key_id=AKIAJ72G4XDNC7NMAOCA
 aws_s3_bucket=wodby-mirroring-testing
 aws_s3_region=us-east-1
 archive_path=/mnt/backup-$RANDOM.tar
@@ -16,7 +15,7 @@ docker run --rm -v /tmp:/mnt -e DEBUG=1 "${IMAGE}" make backup-dir \
     exclude="./engines/libcswift.so;./engines/libgmp.so" dir=/usr/lib filepath="${archive_path}" mark=".wodby"
 
 docker run --rm -v /tmp:/mnt "${IMAGE}" make mirror-s3 \
-    filepath="${archive_path}" key_id="${aws_key_id}" access_key="${AWS_ACCESS_KEY}" \
+    filepath="${archive_path}" key_id="${AWS_ACCESS_KEY_ID}" access_key="${AWS_ACCESS_KEY}" \
     bucket="${aws_s3_bucket}" region="${aws_s3_region}"
     
 docker run --rm -v /tmp:/mnt "${IMAGE}" make backup-dir dir=/usr/lib filepath="${archive_path_zip}"
