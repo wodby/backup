@@ -17,7 +17,7 @@ ionice=$7
 cd "${dir}"
 
 exclude=""
-options="-cfp"
+options="-cp"
 
 if [[ -n "${mark}" ]]; then
     touch "${mark}"
@@ -38,6 +38,6 @@ for path in "${ADDR[@]}"; do
 done
 
 nice -n "${nice}" ionice -c2 -n "${ionice}" \
-    tar "${excludes[@]}" --warning=no-file-changed "${options}" "${filepath}" .
+    tar "${excludes[@]}" --warning=no-file-changed "${options}" -f "${filepath}" .
 
 stat -c "RESULT=%s" "${filepath}"
