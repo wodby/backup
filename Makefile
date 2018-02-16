@@ -1,14 +1,12 @@
 -include env_make
 
-TAG ?= latest
-
 REPO = wodby/backup
 NAME = wodby-backup
 
 ifneq ($(STABILITY_TAG),)
-    ifneq ($(TAG),latest)
-        override TAG := $(STABILITY_TAG)
-    endif
+    TAG = $(STABILITY_TAG)
+else
+    TAG ?= latest
 endif
 
 .PHONY: build test push shell run start stop logs clean release
