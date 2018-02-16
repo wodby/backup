@@ -17,7 +17,7 @@ ionice=$7
 cd "${dir}"
 
 exclude=""
-options="-cf"
+options="-cfp"
 
 if [[ -n "${mark}" ]]; then
     touch "${mark}"
