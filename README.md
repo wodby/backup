@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/wodby/backup.svg?branch=master)](https://travis-ci.org/wodby/backup)
 [![Docker Pulls](https://img.shields.io/docker/pulls/wodby/backup.svg)](https://hub.docker.com/r/wodby/backup)
-[![Docker Stars](https://img.shields.io/docker/stars/backup.svg)](https://hub.docker.com/r/wodby/backup)
+[![Docker Stars](https://img.shields.io/docker/stars/wodby/backup.svg)](https://hub.docker.com/r/wodby/backup)
 [![Docker Layers](https://images.microbadger.com/badges/image/wodby/backup.svg)](https://microbadger.com/images/wodby/backup)
 
 ## Docker Images
