@@ -5,6 +5,12 @@ TAG ?= latest
 REPO = wodby/backup
 NAME = wodby-backup
 
+ifneq ($(STABILITY_TAG),)
+    ifneq ($(TAG),latest)
+        override TAG := $(STABILITY_TAG)
+    endif
+endif
+
 .PHONY: build test push shell run start stop logs clean release
 
 default: build
@@ -22,7 +28,7 @@ shell:
 	docker run --rm --name $(NAME) -i -t $(PORTS) $(VOLUMES) $(ENV) $(REPO):$(TAG) /bin/bash
 
 run:
-	docker run --rm --name $(NAME) $(PORTS) $(VOLUMES) $(ENV) $(REPO):$(TAG)
+	docker run --rm --name $(NAME) $(PORTS) $(VOLUMES) $(ENV) $(REPO):$(TAG) $(CMD)
 
 start:
 	docker run -d --name $(NAME) $(PORTS) $(VOLUMES) $(ENV) $(REPO):$(TAG)

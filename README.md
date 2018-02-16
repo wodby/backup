@@ -3,12 +3,22 @@
 [![Build Status](https://travis-ci.org/wodby/backup.svg?branch=master)](https://travis-ci.org/wodby/backup)
 [![Docker Pulls](https://img.shields.io/docker/pulls/backup/php.svg)](https://hub.docker.com/r/wodby/backup)
 [![Docker Stars](https://img.shields.io/docker/stars/backup/php.svg)](https://hub.docker.com/r/wodby/backup)
+[![Docker Layers](https://images.microbadger.com/badges/image/wodby/backup.svg)](https://microbadger.com/images/wodby/backup)
 
-## Supported tags and respective `Dockerfile` links:
+## Docker Images
+
+!!! For better reliability we release images with stability tags (`wodby/backup:X.X.X`) which correspond to [git tags](https://github.com/wodby/backup/releases). We **STRONGLY RECOMMEND** using images only with stability tags. 
+
+Overview:
+
+* All images are based on Alpine Linux
+* Base image: [wodby/alpine](https://github.com/wodby/alpine)
+* [Travis CI builds](https://travis-ci.org/wodby/backup) 
+* [Docker Hub](https://hub.docker.com/r/wodby/backup)
+
+Supported tags and respective `Dockerfile` links:
 
 * `latest` [_(Dockerfile)_](https://github.com/wodby/backup/tree/master/Dockerfile)
-
-For better reliability we additionally release images with stability tags (`wodby/backup:X.X.X`) which correspond to [git tags](https://github.com/wodby/backup/releases). We **strongly recommend** using images only with stability tags. 
 
 ## Actions
 
