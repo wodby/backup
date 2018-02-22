@@ -13,6 +13,8 @@ exclude ?= ""
 mark = ""
 nice ?= 10
 ionice ?= 7
+max_concurrent_requests ?= 1
+max_bandwidth ?= 10
 
 default: backup-dir
 
@@ -22,6 +24,8 @@ backup-dir:
 
 mirror-s3:
 	$(call check_defined, key_id, access_key, bucket, region, filepath)
+	aws configure set default.s3.max_concurrent_requests $(max_concurrent_requests)
+	aws configure set default.s3.max_bandwidth $(max_bandwidth)MB/s
 	AWS_ACCESS_KEY_ID=$(key_id) AWS_SECRET_ACCESS_KEY=$(access_key) \
 		nice -n $(nice) ionice -c2 -n $(ionice) \
 		aws s3 cp $(filepath) s3://$(bucket)/ --region $(region)

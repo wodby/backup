@@ -27,19 +27,23 @@ Usage:
 make COMMAND [params ...]
  
 commands:
-    backup-dir dir filepath zip exclude mark nice ionice
+    backup-dir dir filepath [zip exclude mark nice ionice]
     rotate dir days 
-    mirror-s3 filepath key_id access_key bucket region nice ionice   
+    mirror-s3 filepath key_id access_key bucket region [nice ionice max_concurrent_requests max_bandwidth]
     delete filepath 
 
 default param values:
     days 7
+    nice 10
+    ionice 7
+    max_concurrent_requests 1
+    max_bandwidth 10   
         
 EXAMPLES:   
     backup-dir dir=/home/user/data filepath=/mnt/archive.tar.gz zip="1" exclude="./dir1;./path/to/file"
     backup-dir dir=/home/user/data filepath=/mnt/archive.tar zip="" mark=".wodby"
     rotate dir=/tmp/data days=8 
-    mirror-s3 filepath=/mnt/archive.tar key_id=ID access_key=KEY bucket=my-bucket region=us-east-1   
+    mirror-s3 filepath=/mnt/archive.tar key_id=ID access_key=KEY bucket=my-bucket region=us-east-1
     delete filepath=/mnt/archive.tar
     mark ""
     nice 10
