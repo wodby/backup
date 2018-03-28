@@ -11,10 +11,10 @@ aws_s3_region=us-east-1
 archive_path=/mnt/backup-$RANDOM.tar
 archive_path_zip=/mnt/backup-$RANDOM.tar.gz
 
-docker run --rm -v /tmp:/mnt -e DEBUG=1 "${IMAGE}" make backup-dir \
+docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make backup-dir \
     exclude="./engines/libcswift.so;./engines/libgmp.so" dir=/usr/lib filepath="${archive_path}" mark=".wodby"
 
-docker run --rm -v /tmp:/mnt "${IMAGE}" make mirror-s3 \
+docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make mirror-s3 \
     filepath="${archive_path}" key_id="${AWS_ACCESS_KEY_ID}" access_key="${AWS_ACCESS_KEY}" \
     bucket="${aws_s3_bucket}" region="${aws_s3_region}"
 

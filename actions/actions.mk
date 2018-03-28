@@ -11,24 +11,27 @@ days ?= 7
 zip ?= ""
 exclude ?= ""
 mark = ""
+
 nice ?= 10
 ionice ?= 7
+
+# mirroring
 max_concurrent_requests ?= 1
-max_bandwidth ?= 10
+max_bandwidth = ""
 
 default: backup-dir
 
 backup-dir:
 	$(call check_defined, dir, filepath)
-	backup-dir.sh $(dir) $(filepath) $(zip) "$(exclude)" "$(mark)" $(nice) $(ionice)
+	backup $(dir) $(filepath) $(zip) "$(exclude)" "$(mark)" $(nice) $(ionice)
 
 mirror-s3:
 	$(call check_defined, key_id, access_key, bucket, region, filepath)
-	aws configure set default.s3.max_concurrent_requests $(max_concurrent_requests)
-	aws configure set default.s3.max_bandwidth $(max_bandwidth)MB/s
-	AWS_ACCESS_KEY_ID=$(key_id) AWS_SECRET_ACCESS_KEY=$(access_key) \
-		nice -n $(nice) ionice -c2 -n $(ionice) \
-		aws s3 cp $(filepath) s3://$(bucket)/ --region $(region)
+	aws_s3_copy \
+		$(key_id) $(access_key) \
+		$(filepath) $(bucket) $(region) \
+		$(max_concurrent_requests) $(max_bandwidth) \
+		$(nice) $(ionice)
 
 rotate:
 	$(call check_defined, dir)
