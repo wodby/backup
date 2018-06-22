@@ -1,4 +1,4 @@
-FROM wodby/alpine:3.7-2.0.0
+FROM wodby/alpine:3.7-2.0.1
 
 RUN set -ex; \
     \
@@ -9,7 +9,7 @@ RUN set -ex; \
     \
     pip install -U awscli
 
-COPY actions/ /usr/local/bin/
+COPY bin /usr/local/bin/
 COPY docker-entrypoint.sh /
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
