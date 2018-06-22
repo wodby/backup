@@ -5,7 +5,7 @@ set -e
 if [[ -n "${DEBUG}" ]]; then
     set -x
 else
-    flags="--quiet"
+    flags="--no-progress"
 fi
 
 key_id=$1
