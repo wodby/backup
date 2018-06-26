@@ -17,6 +17,7 @@ ionice ?= 7
 
 # mirroring
 max_concurrent_requests ?= 10
+max_queue_size ?= 100
 max_bandwidth = ""
 
 default: backup-dir
@@ -30,7 +31,7 @@ mirror-s3:
 	aws_s3_copy \
 		$(key_id) $(access_key) \
 		$(filepath) $(bucket) $(region) \
-		$(max_concurrent_requests) $(max_bandwidth) \
+		$(max_concurrent_requests) $(max_queue_size) $(max_bandwidth) \
 		$(ionice)
 
 rotate:
