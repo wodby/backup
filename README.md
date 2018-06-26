@@ -36,8 +36,8 @@ default param values:
     days 7
     nice 10
     ionice 7
-    max_concurrent_requests 1
-    max_bandwidth 10   
+    max_concurrent_requests 10
+    max_bandwidth    
         
 EXAMPLES:   
     backup-dir dir=/home/user/data filepath=/mnt/archive.tar.gz zip="1" exclude="./dir1;./path/to/file"

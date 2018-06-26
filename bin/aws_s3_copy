@@ -15,8 +15,7 @@ bucket=$4
 region=$5
 max_concurrent_requests=$6
 max_bandwidth=$7
-nice=$8
-ionice=$9
+ionice=$8
 
 export AWS_ACCESS_KEY_ID="${key_id}"
 export AWS_SECRET_ACCESS_KEY="${access_key}"
@@ -27,5 +26,5 @@ if [[ -n "${max_bandwidth}" ]]; then
     aws configure set default.s3.max_bandwidth "${max_bandwidth}MB/s"
 fi
 
-nice -n "${nice}" ionice -c2 -n "${ionice}" \
+ionice -c2 -n "${ionice}" \
     aws s3 cp "${filepath}" "s3://${bucket}/" --region "${region}" $flags

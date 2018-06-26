@@ -16,7 +16,7 @@ nice ?= 10
 ionice ?= 7
 
 # mirroring
-max_concurrent_requests ?= 1
+max_concurrent_requests ?= 10
 max_bandwidth = ""
 
 default: backup-dir
@@ -31,7 +31,7 @@ mirror-s3:
 		$(key_id) $(access_key) \
 		$(filepath) $(bucket) $(region) \
 		$(max_concurrent_requests) $(max_bandwidth) \
-		$(nice) $(ionice)
+		$(ionice)
 
 rotate:
 	$(call check_defined, dir)
