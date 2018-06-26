@@ -4,9 +4,9 @@ REPO = wodby/backup
 NAME = wodby-backup
 
 ifneq ($(STABILITY_TAG),)
-    TAG := $(STABILITY_TAG)
+    override TAG := $(STABILITY_TAG)
 else
-    TAG := latest
+    TAG = latest
 endif
 
 .PHONY: build test push shell run start stop logs clean release
