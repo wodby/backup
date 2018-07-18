@@ -34,8 +34,6 @@ commands:
 
 default param values:
     days 7
-    nice 10
-    ionice 7
     max_concurrent_requests 10
     max_bandwidth    
         
@@ -46,7 +44,4 @@ EXAMPLES:
     mirror-s3 filepath=/mnt/archive.tar key_id=ID access_key=KEY bucket=my-bucket region=us-east-1
     delete filepath=/mnt/archive.tar
     mark ""
-    nice 10
-    ionice 7
-    
 ```

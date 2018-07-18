@@ -12,8 +12,6 @@ zip ?= ""
 exclude ?= ""
 mark = ""
 
-ionice ?= 7
-
 # mirroring
 max_concurrent_requests ?= 10
 max_bandwidth = ""
@@ -29,8 +27,7 @@ mirror-s3:
 	aws_s3_copy \
 		$(key_id) $(access_key) \
 		$(filepath) $(bucket) $(region) \
-		$(max_concurrent_requests) $(max_bandwidth) \
-		$(ionice)
+		$(max_concurrent_requests) $(max_bandwidth)
 
 rotate:
 	$(call check_defined, dir)
