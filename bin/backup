@@ -14,8 +14,6 @@ filepath=$2
 zip=$3
 exclude_paths=$4
 mark=$5
-nice=$6
-ionice=$7
 
 cd "${dir}"
 
@@ -39,7 +37,6 @@ for path in "${ADDR[@]}"; do
     excludes+=("--exclude=\"${path}\"")
 done
 
-nice -n "${nice}" ionice -c2 -n "${ionice}" \
-    tar "${excludes[@]}" --warning=no-file-changed "${options}" -f "${filepath}" .
+tar "${excludes[@]}"  --warning=no-file-changed "${options}" -f "${filepath}" .
 
 stat -c "RESULT=%s" "${filepath}"

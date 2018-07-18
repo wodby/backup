@@ -12,7 +12,6 @@ zip ?= ""
 exclude ?= ""
 mark = ""
 
-nice ?= 10
 ionice ?= 7
 
 # mirroring
@@ -23,7 +22,7 @@ default: backup-dir
 
 backup-dir:
 	$(call check_defined, dir, filepath)
-	backup $(dir) $(filepath) $(zip) "$(exclude)" "$(mark)" $(nice) $(ionice)
+	backup $(dir) $(filepath) $(zip) "$(exclude)" "$(mark)"
 
 mirror-s3:
 	$(call check_defined, key_id, access_key, bucket, region, filepath)
