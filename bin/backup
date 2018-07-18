@@ -37,6 +37,6 @@ for path in "${ADDR[@]}"; do
     excludes+=("--exclude=\"${path}\"")
 done
 
-tar "${excludes[@]}"  --warning=no-file-changed "${options}" -f "${filepath}" .
+tar "${excludes[@]}" --warning=no-file-removed --warning=no-file-changed "${options}" -f "${filepath}" .
 
 stat -c "RESULT=%s" "${filepath}"
