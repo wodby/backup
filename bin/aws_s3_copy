@@ -2,10 +2,12 @@
 
 set -e
 
+flags=""
+
 if [[ -n "${DEBUG}" ]]; then
-    set -x
+  set -x
 else
-    flags="--no-progress"
+  flags="${flags} --no-progress"
 fi
 
 key_id=$1
@@ -15,14 +17,19 @@ bucket=$4
 region=$5
 max_concurrent_requests=$6
 max_bandwidth=$7
+storage_class=$8
 
 export AWS_ACCESS_KEY_ID="${key_id}"
 export AWS_SECRET_ACCESS_KEY="${access_key}"
 
 aws configure set default.s3.max_concurrent_requests "${max_concurrent_requests}"
 
-if [[ -n "${max_bandwidth}" ]]; then
-    aws configure set default.s3.max_bandwidth "${max_bandwidth}MB/s"
+if [[ "${max_bandwidth}" ]]; then
+  aws configure set default.s3.max_bandwidth "${max_bandwidth}MB/s"
+fi
+
+if [[ "${storage_class}" ]]; then
+  flags="${flags} --storage-class ${storage_class}"
 fi
 
 aws s3 cp "${filepath}" "s3://${bucket}/" --region "${region}" $flags

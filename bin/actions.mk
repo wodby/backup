@@ -15,6 +15,7 @@ mark = ""
 # mirroring
 max_concurrent_requests ?= 10
 max_bandwidth = ""
+storage_class = STANDARD
 
 default: backup-dir
 
@@ -27,7 +28,7 @@ mirror-s3:
 	aws_s3_copy \
 		$(key_id) $(access_key) \
 		$(filepath) $(bucket) $(region) \
-		$(max_concurrent_requests) $(max_bandwidth)
+		$(max_concurrent_requests) $(max_bandwidth) $(storage_class)
 
 rotate:
 	$(call check_defined, dir)
