@@ -15,7 +15,7 @@ mark = ""
 # mirroring
 max_concurrent_requests ?= 10
 max_bandwidth = ""
-storage_class = STANDARD
+storage_class = "STANDARD"
 
 default: backup-dir
 
