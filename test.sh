@@ -16,7 +16,7 @@ docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make backup-dir \
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make mirror-s3 \
     filepath="${archive_path}" key_id="${AWS_ACCESS_KEY_ID}" access_key="${AWS_ACCESS_KEY}" \
-    bucket="${aws_s3_bucket}" region="${aws_s3_region}"
+    bucket="${aws_s3_bucket}" region="${aws_s3_region}" storage_class="STANDARD_IA"
 
 docker run --rm -v /tmp:/mnt "${IMAGE}" make backup-dir dir=/usr/lib filepath="${archive_path_zip}"
 docker run --rm -v /tmp:/mnt "${IMAGE}" make delete filepath="${archive_path_zip}"
