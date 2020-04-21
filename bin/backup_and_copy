@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -e
+
+flags=""
+if [[ -n "${DEBUG}" ]]; then
+  set -x
+else
+  flags="${flags} --no-progress"
+fi
+
+dir=$1
+exclude_paths=$2
+mark=$3
+bucket=$4
+region=$5
+max_concurrent_requests=$6
+max_bandwidth=$7
+storage_class=$8
+
+if [[ "${storage_class}" ]]; then
+  flags="${flags} --storage-class ${storage_class}"
+fi
+
+aws_configure "${max_concurrent_requests}" "${max_bandwidth}"
+pack "${dir}" "-" "" "${exclude_paths}" "${mark}" | aws s3 cp "-" "s3://${bucket}/" --region "${region}" $flags

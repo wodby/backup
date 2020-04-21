@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+set -e
+
+options="-c"
+
+if [[ -n "${DEBUG}" ]]; then
+  set -x
+  options="${options}v"
+fi
+
+dir=$1
+filepath=$2
+zip=$3
+exclude_paths=$4
+mark=$5
+
+cd "${dir}"
+
+if [[ -n "${mark}" ]]; then
+  touch "${mark}"
+  chmod 777 "${mark}"
+  ownership=$(stat -c '%U:%G' .)
+  chown "${ownership}" "${mark}"
+fi
+
+if [[ -n "${zip}" ]]; then
+  options="${options}z"
+fi
+
+excludes=()
+
+IFS=';' read -ra ADDR <<<"${exclude_paths}"
+for path in "${ADDR[@]}"; do
+  excludes+=("--exclude=\"${path}\"")
+done
+
+#####################################################
+#
+# Exit code 1 means: some files differ.
+# There is no way to ignore such error via tar flags or options.
+# So we handle exit code 1 manually.
+#
+# Options like:
+#   --warning=no-file-removed
+#   --warning=no-file-changed
+# do not affect exit code and just hide warning messages, so we do not use them.
+#
+# Links:
+#   http://www.gnu.org/software/tar/manual/html_section/tar_19.html#Synopsis
+#   https://stackoverflow.com/a/24012292/6167230
+#   http://www.gnu.org/software/tar/manual/html_section/tar_27.html#warnings
+#
+
+tar "${excludes[@]}" --totals "${options}" -f "${filepath}" .

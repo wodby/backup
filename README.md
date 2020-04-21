@@ -7,11 +7,11 @@
 
 ## Docker Images
 
-❗For better reliability we release images with stability tags (`wodby/backup:X.X.X`) which correspond to [git tags](https://github.com/wodby/backup/releases). We strongly recommend using images only with stability tags. 
+For better reliability we release images with stability tags (`wodby/backup:X.X.X`) which correspond to [git tags](https://github.com/wodby/backup/releases). We strongly recommend using images only with stability tags. 
 
 Overview:
 
-* All images are based on Alpine Linux
+* All images based on Alpine Linux
 * Base image: [wodby/alpine](https://github.com/wodby/alpine)
 * [Travis CI builds](https://travis-ci.org/wodby/backup) 
 * [Docker Hub](https://hub.docker.com/r/wodby/backup)
@@ -27,15 +27,15 @@ Usage:
 make COMMAND [params ...]
  
 commands:
-    backup-dir dir filepath [zip exclude mark nice ionice]
-    rotate dir days 
-    mirror-s3 filepath key_id access_key bucket region [nice ionice max_concurrent_requests max_bandwidth]
+    backup-dir dir filepath [zip exclude mark]
+    rotate dir [days] 
+    mirror-s3 filepath key_id access_key bucket region [max_concurrent_requests max_bandwidth]
     delete filepath 
 
 default param values:
     days 7
-    max_concurrent_requests 10
-    max_bandwidth    
+    max_concurrent_requests 1
+    max_bandwidth
         
 EXAMPLES:   
     backup-dir dir=/home/user/data filepath=/mnt/archive.tar.gz zip="1" exclude="./dir1;./path/to/file"
