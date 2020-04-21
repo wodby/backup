@@ -13,7 +13,7 @@ exclude ?= ""
 mark = ""
 
 # mirroring
-max_concurrent_requests ?= 10
+max_concurrent_requests ?= 1
 max_bandwidth = ""
 storage_class ?= STANDARD
 
