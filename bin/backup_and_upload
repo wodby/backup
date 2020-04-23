@@ -7,17 +7,16 @@ if [[ -n "${DEBUG}" ]]; then
 fi
 
 provider=$1
-scope=$2
-key=$3
-secret=$4
-dir=$5
-exclude_paths=$6
-mark=$7
-bucket=$8
-destination=$9
-max_concurrent_requests=${10}
-max_bandwidth=${11}
-storage_class=${12}
+key=$2
+secret=$3
+dir=$4
+exclude_paths=$5
+mark=$6
+bucket=$7
+destination=$8
+max_concurrent_requests=$9
+max_bandwidth=${10}
+storage_class=${11}
 
 case "${provider}" in
 "aws")
@@ -27,8 +26,7 @@ case "${provider}" in
   fi
   AWS_ACCESS_KEY_ID=${key} AWS_SECRET_ACCESS_KEY=${secret} backup_and_upload_aws \
     "${dir}" "${exclude_paths}" "${mark}" \
-    "${scope}" "${bucket}" "${destination}" \
-    "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}"
+    "${bucket}" "${destination}" "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}"
   ;;
 "gcp")
   if [[ ! -f "${key}" ]]; then
@@ -37,7 +35,7 @@ case "${provider}" in
   fi
   backup_and_upload_gcp \
     "${dir}" "${exclude_paths}" "${mark}" \
-     "${key}" "${scope}" "${bucket}" "${destination}" "${storage_class}"
+     "${key}" "${bucket}" "${destination}" "${storage_class}"
   ;;
 *)
   exit 1

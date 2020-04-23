@@ -11,7 +11,6 @@ exclude ?= ""
 mark ?= ""
 region ?= ""
 secret ?= ""
-scope ?= ""
 
 max_concurrent_requests ?= 1
 max_bandwidth = ""
@@ -25,17 +24,17 @@ backup-dir:
 .PHONY: backup-dir
 
 upload:
-	$(call check_defined, provider, scope, key, bucket, filepath)
+	$(call check_defined, provider, key, bucket, filepath)
 	upload \
-		$(provider) $(scope) $(key) $(secret) \
+		$(provider) $(key) $(secret) \
 		$(filepath) $(bucket) \
 		$(max_concurrent_requests) $(max_bandwidth) $(storage_class)
 .PHONY: upload
 
 backup-and-upload:
-	$(call check_defined, provider, scope, dir, key, bucket, destination)
+	$(call check_defined, provider, dir, key, bucket, destination)
 	backup_and_upload \
-		$(provider) $(scope) $(key) $(secret) \
+		$(provider) $(key) $(secret) \
 		$(dir) $(exclude) $(mark) $(bucket) $(destination) \
 		$(max_concurrent_requests) $(max_bandwidth) $(storage_class)
 .PHONY: backup-and-upload

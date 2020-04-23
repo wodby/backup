@@ -7,14 +7,13 @@ if [[ -n "${DEBUG}" ]]; then
 fi
 
 provider=$1
-scope=$2
-key=$3
-secret=$4
-filepath=$5
-bucket=$6
-max_concurrent_requests=$7
-max_bandwidth=$8
-storage_class=$9
+key=$2
+secret=$3
+filepath=$4
+bucket=$5
+max_concurrent_requests=$6
+max_bandwidth=$7
+storage_class=$8
 
 case "${provider}" in
 "aws")
@@ -23,14 +22,14 @@ case "${provider}" in
     exit 1
   fi
   AWS_ACCESS_KEY_ID=${key} AWS_SECRET_ACCESS_KEY=${secret} upload_aws \
-    "${filepath}" "${bucket}" "${scope}" "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}"
+    "${filepath}" "${bucket}" "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}"
   ;;
 "gcp")
   if [[ ! -f "${key}" ]]; then
     echo "${key}" | base64 -d > /tmp/sa.json
     key=/tmp/sa.json
   fi
-  upload_gcp "${key}" "${scope}" "${filepath}" "${bucket}" "${storage_class}"
+  upload_gcp "${key}" "${filepath}" "${bucket}" "${storage_class}"
   ;;
 *)
   exit 1
