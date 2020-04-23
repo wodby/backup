@@ -9,8 +9,10 @@ days ?= 7
 zip ?= ""
 exclude ?= ""
 mark ?= ""
+region ?= ""
+secret ?= ""
+scope ?= ""
 
-# mirroring
 max_concurrent_requests ?= 1
 max_bandwidth = ""
 storage_class ?= STANDARD
@@ -22,20 +24,21 @@ backup-dir:
 	backup $(dir) $(filepath) $(zip) "$(exclude)" "$(mark)"
 .PHONY: backup-dir
 
-mirror-s3:
-	$(call check_defined, key_id, access_key, bucket, region, filepath)
-	AWS_ACCESS_KEY_ID=$(key_id) AWS_SECRET_ACCESS_KEY=$(access_key) aws_s3_copy \
-		$(filepath) $(bucket) $(region) \
+upload:
+	$(call check_defined, provider, scope, key, bucket, filepath)
+	upload \
+		$(provider) $(scope) $(key) $(secret) \
+		$(filepath) $(bucket) \
 		$(max_concurrent_requests) $(max_bandwidth) $(storage_class)
-.PHONY: mirror-s3
+.PHONY: upload
 
-backup-and-copy:
-	$(call check_defined, dir, key_id, access_key, bucket, region)
-	AWS_ACCESS_KEY_ID=$(key_id) AWS_SECRET_ACCESS_KEY=$(access_key) backup_and_copy \
-		$(dir) $(exclude) $(mark) \
-		$(bucket) $(region) \
+backup-and-upload:
+	$(call check_defined, provider, scope, dir, key, bucket, destination)
+	backup_and_upload \
+		$(provider) $(scope) $(key) $(secret) \
+		$(dir) $(exclude) $(mark) $(bucket) $(destination) \
 		$(max_concurrent_requests) $(max_bandwidth) $(storage_class)
-.PHONY: backup-and-copy
+.PHONY: backup-and-upload
 
 rotate:
 	$(call check_defined, dir)

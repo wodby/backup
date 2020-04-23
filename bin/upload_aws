@@ -17,7 +17,7 @@ max_concurrent_requests=$4
 max_bandwidth=$5
 storage_class=$6
 
-aws_configure "${max_concurrent_requests}" "${max_bandwidth}"
+configure_aws "${max_concurrent_requests}" "${max_bandwidth}"
 
 if [[ "${storage_class}" ]]; then
   flags="${flags} --storage-class ${storage_class}"

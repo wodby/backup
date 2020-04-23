@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -e
+
+flags=""
+
+if [[ -n "${DEBUG}" ]]; then
+  set -x
+fi
+
+sa_key_path=$1
+project_id=$2
+filepath=$3
+bucket=$4
+storage_class=$5
+
+configure_gcp "${sa_key_path}" "${project_id}"
+
+if [[ "${storage_class}" ]]; then
+  flags="${flags} -s ${storage_class}"
+fi
+
+gsutil cp $flags "${filepath}" "gs://${bucket}/"

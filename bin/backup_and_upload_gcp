@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -e
+
+flags=""
+if [[ -n "${DEBUG}" ]]; then
+  set -x
+fi
+
+dir=$1
+exclude_paths=$2
+mark=$3
+sa_key_path=$4
+project_id=$5
+bucket=$6
+destination=$7
+storage_class=$8
+
+if [[ "${storage_class}" ]]; then
+  flags="${flags} -s ${storage_class}"
+fi
+
+configure_gcp "${sa_key_path}" "${project_id}"
+pack "${dir}" "-" "" "${exclude_paths}" "${mark}" | gsutil cp $flags "-" "gs://${bucket}/${destination}"

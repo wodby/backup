@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [[ -n "${DEBUG}" ]]; then
+  set -x
+fi
+
+sa_key_path=$1
+project_id=$2
+
+gcloud auth activate-service-account --key-file="${sa_key_path}"
+gcloud config set project "${project_id}"

@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [[ -n "${DEBUG}" ]]; then
+  set -x
+fi
+
+provider=$1
+scope=$2
+key=$3
+secret=$4
+filepath=$5
+bucket=$6
+max_concurrent_requests=$7
+max_bandwidth=$8
+storage_class=$9
+
+case "${provider}" in
+"aws")
+  if [[ -z "${secret}" ]]; then
+    >&2 echo "Missing AWS secret access key"
+    exit 1
+  fi
+  AWS_ACCESS_KEY_ID=${key} AWS_SECRET_ACCESS_KEY=${secret} upload_aws \
+    "${filepath}" "${bucket}" "${scope}" "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}"
+  ;;
+"gcp")
+  if [[ ! -f "${key}" ]]; then
+    echo "${key}" | base64 -d > /tmp/sa.json
+    key=/tmp/sa.json
+  fi
+  upload_gcp "${key}" "${scope}" "${filepath}" "${bucket}" "${storage_class}"
+  ;;
+*)
+  exit 1
+  ;;
+esac
