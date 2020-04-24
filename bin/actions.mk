@@ -35,7 +35,7 @@ backup-and-upload:
 	$(call check_defined, provider, dir, key, bucket, destination)
 	backup_and_upload \
 		$(provider) $(key) $(secret) \
-		$(dir) $(exclude) $(mark) $(bucket) $(destination) \
+		$(dir) $(zip) $(exclude) $(mark) $(bucket) $(destination) \
 		$(max_concurrent_requests) $(max_bandwidth) $(storage_class)
 .PHONY: backup-and-upload
 

@@ -30,7 +30,7 @@ commands:
     backup-dir dir filepath [zip exclude mark]
     rotate dir [days] 
     upload provider filepath key secret bucket [max_concurrent_requests max_bandwidth storage_class]
-    backup-and-upload dir provider key secret bucket [max_concurrent_requests max_bandwidth storage_class] 
+    backup-and-upload dir provider key secret bucket [zip max_concurrent_requests max_bandwidth storage_class] 
     delete filepath 
 
 default param values:
