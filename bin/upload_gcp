@@ -11,7 +11,8 @@ fi
 sa_key_path=$1
 filepath=$2
 bucket=$3
-storage_class=$4
+destination=$4
+storage_class=$5
 
 configure_gcp "${sa_key_path}"
 
@@ -19,4 +20,4 @@ if [[ "${storage_class}" ]]; then
   flags="${flags} -s ${storage_class}"
 fi
 
-gsutil cp $flags "${filepath}" "gs://${bucket}/"
+gsutil cp $flags "${filepath}" "gs://${bucket}/${destination}"

@@ -9,8 +9,8 @@ days ?= 7
 zip ?= ""
 exclude ?= ""
 mark ?= ""
-region ?= ""
 secret ?= ""
+destination ?= ""
 
 max_concurrent_requests ?= 1
 max_bandwidth = ""
@@ -27,7 +27,7 @@ upload:
 	$(call check_defined, provider, key, bucket, filepath)
 	upload \
 		$(provider) $(key) $(secret) \
-		$(filepath) $(bucket) \
+		$(filepath) $(bucket) $(destination) \
 		$(max_concurrent_requests) $(max_bandwidth) $(storage_class)
 .PHONY: upload
 

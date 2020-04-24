@@ -15,14 +15,14 @@ exclude_paths=$6
 mark=$7
 bucket=$8
 destination=$9
-max_concurrent_requests=$10
+max_concurrent_requests=${10}
 max_bandwidth=${11}
 storage_class=${12}
 
 case "${provider}" in
 "aws")
   if [[ -z "${secret}" ]]; then
-    >&2 echo "Missing AWS secret access key"
+    echo >&2 "Missing AWS secret access key"
     exit 1
   fi
   AWS_ACCESS_KEY_ID=${key} AWS_SECRET_ACCESS_KEY=${secret} backup_and_upload_aws \
@@ -31,12 +31,12 @@ case "${provider}" in
   ;;
 "gcp")
   if [[ ! -f "${key}" ]]; then
-    echo "${key}" | base64 -d > /tmp/sa.json
+    echo "${key}" | base64 -d >/tmp/sa.json
     key=/tmp/sa.json
   fi
   backup_and_upload_gcp \
     "${dir}" "${zip}" "${exclude_paths}" "${mark}" \
-     "${key}" "${bucket}" "${destination}" "${storage_class}"
+    "${key}" "${bucket}" "${destination}" "${storage_class}"
   ;;
 *)
   exit 1

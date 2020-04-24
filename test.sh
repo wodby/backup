@@ -20,6 +20,10 @@ docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
   filepath="${archive_path}" bucket="${aws_bucket}" storage_class="STANDARD_IA"
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
+  provider="aws" key="${AWS_ACCESS_KEY_ID}" secret="${AWS_ACCESS_KEY}" \
+  filepath="${archive_path}" bucket="${aws_bucket}" destination="destination-$RANDOM.tar"
+
+docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
   provider="gcp" key="${GCP_SA}" \
   filepath="${archive_path}" bucket="${gcp_bucket}" storage_class="NEARLINE"
 

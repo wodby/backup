@@ -12,9 +12,10 @@ fi
 
 filepath=$1
 bucket=$2
-max_concurrent_requests=$3
-max_bandwidth=$4
-storage_class=$5
+destination=$3
+max_concurrent_requests=$4
+max_bandwidth=$5
+storage_class=$6
 
 configure_aws "${max_concurrent_requests}" "${max_bandwidth}"
 
@@ -22,4 +23,4 @@ if [[ "${storage_class}" ]]; then
   flags="${flags} --storage-class ${storage_class}"
 fi
 
-aws s3 cp "${filepath}" "s3://${bucket}/" $flags
+aws s3 cp "${filepath}" "s3://${bucket}/${destination}" $flags
