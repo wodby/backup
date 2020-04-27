@@ -10,7 +10,7 @@ else
 fi
 
 dir=$1
-zip=$2
+gzip=$2
 exclude_paths=$3
 mark=$4
 bucket=$5
@@ -24,4 +24,4 @@ if [[ "${storage_class}" ]]; then
 fi
 
 configure_aws "${max_concurrent_requests}" "${max_bandwidth}"
-pack "${dir}" "-" "${zip}" "${exclude_paths}" "${mark}" | aws s3 cp "-" "s3://${bucket}/${destination}" $flags
+pack "${dir}" "-" "${gzip}" "${exclude_paths}" "${mark}" | aws s3 cp "-" "s3://${bucket}/${destination}" $flags

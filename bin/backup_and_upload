@@ -10,7 +10,7 @@ provider=$1
 key=$2
 secret=$3
 dir=$4
-zip=$5
+gzip=$5
 exclude_paths=$6
 mark=$7
 bucket=$8
@@ -26,7 +26,7 @@ case "${provider}" in
     exit 1
   fi
   AWS_ACCESS_KEY_ID=${key} AWS_SECRET_ACCESS_KEY=${secret} backup_and_upload_aws \
-    "${dir}" "${zip}" "${exclude_paths}" "${mark}" \
+    "${dir}" "${gzip}" "${exclude_paths}" "${mark}" \
     "${bucket}" "${destination}" "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}"
   ;;
 "gcp")
@@ -35,7 +35,7 @@ case "${provider}" in
     key=/tmp/sa.json
   fi
   backup_and_upload_gcp \
-    "${dir}" "${zip}" "${exclude_paths}" "${mark}" \
+    "${dir}" "${gzip}" "${exclude_paths}" "${mark}" \
     "${key}" "${bucket}" "${destination}" "${storage_class}"
   ;;
 *)

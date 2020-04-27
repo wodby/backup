@@ -16,7 +16,7 @@ docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make backup-dir \
   exclude="./engines/libcswift.so;./engines/libgmp.so" dir=/usr/include filepath="${archive_path}" mark=".wodby"
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
-  provider="aws" key="${AWS_ACCESS_KEY_ID}" secret="${AWS_ACCESS_KEY}" \
+  provider="aws" key="${AWS_ACCESS_KEY_ID}" gzip=1 secret="${AWS_ACCESS_KEY}" \
   filepath="${archive_path}" bucket="${aws_bucket}" storage_class="STANDARD_IA"
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \

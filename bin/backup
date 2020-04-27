@@ -8,12 +8,12 @@ fi
 
 dir=$1
 filepath=$2
-zip=$3
+gzip=$3
 exclude_paths=$4
 mark=$5
 
 set +e
-pack "${dir}" "${filepath}" "${zip}" "${exclude_paths}" "${mark}"
+pack "${dir}" "${filepath}" "${gzip}" "${exclude_paths}" "${mark}"
 exitcode=$?
 
 if [ "$exitcode" != "1" ] && [ "$exitcode" != "0" ]; then

@@ -6,7 +6,7 @@ __check_defined = \
       $(error Required parameter is missing: $1$(if $2, ($2))))
 
 days ?= 7
-zip ?= ""
+gzip ?= ""
 exclude ?= ""
 mark ?= ""
 secret ?= ""
@@ -20,7 +20,7 @@ default: backup-dir
 
 backup-dir:
 	$(call check_defined, dir, filepath)
-	backup $(dir) $(filepath) $(zip) "$(exclude)" "$(mark)"
+	backup $(dir) $(filepath) $(gzip) "$(exclude)" "$(mark)"
 .PHONY: backup-dir
 
 upload:
@@ -35,7 +35,7 @@ backup-and-upload:
 	$(call check_defined, provider, dir, key, bucket, destination)
 	backup_and_upload \
 		$(provider) $(key) $(secret) \
-		$(dir) $(zip) $(exclude) $(mark) $(bucket) $(destination) \
+		$(dir) $(gzip) $(exclude) $(mark) $(bucket) $(destination) \
 		$(max_concurrent_requests) $(max_bandwidth) $(storage_class)
 .PHONY: backup-and-upload
 

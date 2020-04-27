@@ -11,7 +11,7 @@ fi
 
 dir=$1
 filepath=$2
-zip=$3
+gzip=$3
 exclude_paths=$4
 mark=$5
 
@@ -24,7 +24,7 @@ if [[ -n "${mark}" ]]; then
   chown "${ownership}" "${mark}"
 fi
 
-if [[ -n "${zip}" ]]; then
+if [[ -n "${gzip}" ]]; then
   options="${options}z"
 fi
 
