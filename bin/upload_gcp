@@ -13,6 +13,7 @@ filepath=$2
 bucket=$3
 destination=$4
 storage_class=$5
+content_disposition=$6
 
 configure_gcp "${sa_key_path}"
 
@@ -21,3 +22,7 @@ if [[ "${storage_class}" ]]; then
 fi
 
 gsutil cp $flags "${filepath}" "gs://${bucket}/${destination}"
+
+if [[ "${content_disposition}" ]]; then
+  gsutil setmeta -h "Content-Disposition: ${content_disposition}" "gs://${bucket}/${destination}"
+fi

@@ -15,6 +15,7 @@ destination=$6
 max_concurrent_requests=$7
 max_bandwidth=$8
 storage_class=$9
+content_disposition=${10}
 
 case "${provider}" in
 "aws")
@@ -23,14 +24,14 @@ case "${provider}" in
     exit 1
   fi
   AWS_ACCESS_KEY_ID=${key} AWS_SECRET_ACCESS_KEY=${secret} upload_aws \
-    "${filepath}" "${bucket}" "${destination}" "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}"
+    "${filepath}" "${bucket}" "${destination}" "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}" "${content_disposition}"
   ;;
 "gcp")
   if [[ ! -f "${key}" ]]; then
     echo "${key}" | base64 -d > /tmp/sa.json
     key=/tmp/sa.json
   fi
-  upload_gcp "${key}" "${filepath}" "${bucket}" "${destination}" "${storage_class}"
+  upload_gcp "${key}" "${filepath}" "${bucket}" "${destination}" "${storage_class}" "${content_disposition}"
   ;;
 *)
   exit 1

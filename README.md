@@ -29,8 +29,8 @@ make COMMAND [params ...]
 commands:
     backup-dir dir filepath [gzip exclude mark]
     rotate dir [days] 
-    upload provider filepath key secret bucket [destination max_concurrent_requests max_bandwidth storage_class]
-    backup-and-upload dir provider key secret bucket destination [gzip max_concurrent_requests max_bandwidth storage_class] 
+    upload provider filepath key secret bucket [destination max_concurrent_requests max_bandwidth storage_class content_disposition]
+    backup-and-upload dir provider key secret bucket destination [gzip max_concurrent_requests max_bandwidth storage_class content_disposition] 
     delete filepath 
 
 default param values:

@@ -18,6 +18,7 @@ destination=$9
 max_concurrent_requests=${10}
 max_bandwidth=${11}
 storage_class=${12}
+content_disposition=${13}
 
 case "${provider}" in
 "aws")
@@ -27,7 +28,7 @@ case "${provider}" in
   fi
   AWS_ACCESS_KEY_ID=${key} AWS_SECRET_ACCESS_KEY=${secret} backup_and_upload_aws \
     "${dir}" "${gzip}" "${exclude_paths}" "${mark}" \
-    "${bucket}" "${destination}" "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}"
+    "${bucket}" "${destination}" "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}" "${content_disposition}"
   ;;
 "gcp")
   if [[ ! -f "${key}" ]]; then
@@ -36,7 +37,7 @@ case "${provider}" in
   fi
   backup_and_upload_gcp \
     "${dir}" "${gzip}" "${exclude_paths}" "${mark}" \
-    "${key}" "${bucket}" "${destination}" "${storage_class}"
+    "${key}" "${bucket}" "${destination}" "${storage_class}" "${content_disposition}"
   ;;
 *)
   exit 1
