@@ -2,7 +2,7 @@
 
 set -e
 
-flags=""
+flags=()
 
 if [[ -n "${DEBUG}" ]]; then
   set -x
@@ -18,11 +18,11 @@ content_disposition=$6
 configure_gcp "${sa_key_path}"
 
 if [[ "${storage_class}" ]]; then
-  flags="${flags} -s ${storage_class}"
+  flags+=(-s "${storage_class}")
 fi
 
-gsutil cp $flags "${filepath}" "gs://${bucket}/${destination}"
+gsutil cp "${flags[@]}" "${filepath}" "gs://${bucket}/${destination}"
 
 if [[ "${content_disposition}" ]]; then
-  gsutil setmeta -h "Content-Disposition: ${content_disposition}" "gs://${bucket}/${destination}"
+  gsutil setmeta -h "Content-Disposition: \"${content_disposition}\"" "gs://${bucket}/${destination}"
 fi

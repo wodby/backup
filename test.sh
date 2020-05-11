@@ -17,7 +17,7 @@ docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make backup-dir \
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
   provider="aws" key="${AWS_ACCESS_KEY_ID}" gzip=1 secret="${AWS_ACCESS_KEY}" \
-  filepath="${archive_path}" bucket="${aws_bucket}" storage_class="STANDARD_IA"
+  filepath="${archive_path}" bucket="${aws_bucket}" storage_class="STANDARD_IA" content_disposition="'attachment; filename=test.tar'"
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
   provider="aws" key="${AWS_ACCESS_KEY_ID}" secret="${AWS_ACCESS_KEY}" \
@@ -25,7 +25,7 @@ docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
   provider="gcp" key="${GCP_SA}" \
-  filepath="${archive_path}" bucket="${gcp_bucket}" storage_class="NEARLINE"
+  filepath="${archive_path}" bucket="${gcp_bucket}" destination="destination-$RANDOM.tar" storage_class="NEARLINE" content_disposition="'attachment; filename=test.tar'"
 
 docker run --rm -v /tmp:/mnt "${IMAGE}" make backup-dir dir=/usr/include filepath="${archive_path_zip}"
 docker run --rm -v /tmp:/mnt "${IMAGE}" make delete filepath="${archive_path_zip}"
