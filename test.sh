@@ -13,7 +13,7 @@ archive_path_zip=/mnt/backup-$RANDOM.tar.gz
 destination=test/test.tar
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make backup-dir \
-  exclude="./gnumake.h;./engines/python3.11" dir=/usr/include filepath="${archive_path}" mark=".wodby"
+  exclude="./gnumake.h;./python3.11" dir=/usr/include filepath="${archive_path}" mark=".wodby"
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
   provider="aws" key="${AWS_ACCESS_KEY_ID}" gzip=1 secret="${AWS_SECRET_ACCESS_KEY}" \
