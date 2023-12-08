@@ -40,6 +40,11 @@ backup-and-upload:
 		$(max_concurrent_requests) $(max_bandwidth) $(storage_class) $(content_disposition)
 .PHONY: backup-and-upload
 
+import:
+	$(call check_defined, source, destination)
+	import $(source) $(destination) $(owner) $(group)
+.PHONY: import
+
 rotate:
 	$(call check_defined, dir)
 	find $(dir) -mindepth 1 -mtime +$(days) -delete

@@ -16,11 +16,11 @@ docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make backup-dir \
   exclude="./engines/libcswift.so;./engines/libgmp.so" dir=/usr/include filepath="${archive_path}" mark=".wodby"
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
-  provider="aws" key="${AWS_ACCESS_KEY_ID}" gzip=1 secret="${AWS_ACCESS_KEY}" \
+  provider="aws" key="${AWS_ACCESS_KEY_ID}" gzip=1 secret="${AWS_SECRET_ACCESS_KEY}" \
   filepath="${archive_path}" bucket="${aws_bucket}" storage_class="STANDARD_IA" content_disposition="'attachment; filename=test.tar'"
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
-  provider="aws" key="${AWS_ACCESS_KEY_ID}" secret="${AWS_ACCESS_KEY}" \
+  provider="aws" key="${AWS_ACCESS_KEY_ID}" secret="${AWS_SECRET_ACCESS_KEY}" \
   filepath="${archive_path}" bucket="${aws_bucket}" destination="destination-$RANDOM.tar"
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
@@ -35,6 +35,7 @@ docker run --rm -v /tmp:/mnt "${IMAGE}" touch /mnt/files/newfile
 docker run --rm -v /tmp:/mnt "${IMAGE}" make rotate dir=/mnt/files
 docker run --rm -v /tmp:/mnt "${IMAGE}" test ! -e /mnt/files/oldfile
 docker run --rm -v /tmp:/mnt "${IMAGE}" test -e /mnt/files/newfile
+docker run --rm -v /tmp:/mnt "${IMAGE}" make import source="${archive_path_zip}"
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make backup-and-upload dir=/usr/include \
   provider="aws" key="${AWS_ACCESS_KEY_ID}" secret="${AWS_ACCESS_KEY}" \

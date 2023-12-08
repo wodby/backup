@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+if [[ -n "${DEBUG}" ]]; then
+    set -x
+fi
+
+source=$1
+dest=$2
+owner=$3
+group=$4
+tmp_dir="/tmp/source"
+
+sync_files() {
+  files_sync "${tmp_dir}/" "${1}" "${owner}" "${group}"
+}
+
+get_archive "${source}" "${tmp_dir}" "zip tgz tar.gz tar"
+
+if [[ -f "${tmp_dir}/.wodby" ]]; then
+  echo "Wodby backup archive detected"
+  if [[ -d "${tmp_dir}/private" || -d "${tmp_dir}/public") ]]; then
+    echo "Detected private and public directories in source, importing to destination's top directory"
+    sync_files "${dest}"
+  else
+    echo "No public or private directories detected from source, consider import to be public files"
+    if [[ -d "${dest}/public" ]]; then
+      echo "Found public directory in destination. Import to public"
+      sync_files "${dest}/public"
+    else
+      echo "No public directory found in destination, importing to top directory"
+      sync_files "${dest}"
+    fi
+  fi
+else
+  echo "Importing files to destination's top directory"
+  sync_files "${dest}"
+fi;
+
+rm -rf "${tmp_dir}"

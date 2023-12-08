@@ -1,0 +1,27 @@
+name: Build docker image
+
+on:
+  push:
+    branches:
+    - master
+
+    tags:
+    - '*'
+
+env:
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  GCP_SA: ${{ secrets.GCP_SA }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: docker/setup-buildx-action@v3
+    - uses: ./.github/actions
+      with:
+        tags: latest
+        platform: linux/amd64

@@ -1,9 +1,8 @@
 # Simple Backup Container Image
 
-[![Build Status](https://travis-ci.org/wodby/backup.svg?branch=master)](https://travis-ci.org/wodby/backup)
+[![Build Status](https://github.com/wodby/backup/workflows/Build%20docker%20image/badge.svg)](https://github.com/wodby/backup/actions)
 [![Docker Pulls](https://img.shields.io/docker/pulls/wodby/backup.svg)](https://hub.docker.com/r/wodby/backup)
 [![Docker Stars](https://img.shields.io/docker/stars/wodby/backup.svg)](https://hub.docker.com/r/wodby/backup)
-[![Docker Layers](https://images.microbadger.com/badges/image/wodby/backup.svg)](https://microbadger.com/images/wodby/backup)
 
 ## Docker Images
 
@@ -13,7 +12,6 @@ Overview:
 
 * All images based on Alpine Linux
 * Base image: [wodby/alpine](https://github.com/wodby/alpine)
-* [Travis CI builds](https://travis-ci.org/wodby/backup) 
 * [Docker Hub](https://hub.docker.com/r/wodby/backup)
 
 Supported tags and respective `Dockerfile` links:
@@ -32,6 +30,7 @@ commands:
     upload provider filepath key secret bucket [destination max_concurrent_requests max_bandwidth storage_class content_disposition]
     backup-and-upload dir provider key secret bucket destination [gzip max_concurrent_requests max_bandwidth storage_class content_disposition] 
     delete filepath 
+    import source destination owner group  
 
 default param values:
     days 7
