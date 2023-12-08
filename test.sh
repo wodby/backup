@@ -41,7 +41,7 @@ docker run --rm -v /tmp:/mnt "${IMAGE}" make import source="https://s3.amazonaws
 docker run --rm -v /tmp:/mnt "${IMAGE}" make import source="https://s3.amazonaws.com/wodby-sample-files/archives/export.zip" destination="/mnt" user=11 group=11
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make backup-and-upload dir=/usr/include \
-  provider="aws" key="${AWS_ACCESS_KEY_ID}" secret="${AWS_ACCESS_KEY}" \
+  provider="aws" key="${AWS_ACCESS_KEY_ID}" secret="${AWS_SECRET_ACCESS_KEY}" \
   bucket="${aws_bucket}" destination="${destination}" storage_class="STANDARD_IA" region="${AWS_REGION}"
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make backup-and-upload dir=/usr/include \
