@@ -29,7 +29,7 @@ upload:
 	upload \
 		$(provider) $(key) $(secret) \
 		$(filepath) $(bucket) $(destination) \
-		$(max_concurrent_requests) $(max_bandwidth) $(storage_class) $(content_disposition)
+		$(max_concurrent_requests) $(max_bandwidth) $(storage_class) $(content_disposition) $(region)
 .PHONY: upload
 
 backup-and-upload:
@@ -37,7 +37,7 @@ backup-and-upload:
 	backup_and_upload \
 		$(provider) $(key) $(secret) \
 		$(dir) $(gzip) $(exclude) $(mark) $(bucket) $(destination) \
-		$(max_concurrent_requests) $(max_bandwidth) $(storage_class) $(content_disposition)
+		$(max_concurrent_requests) $(max_bandwidth) $(storage_class) $(content_disposition) $(region)
 .PHONY: backup-and-upload
 
 import:

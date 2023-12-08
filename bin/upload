@@ -16,6 +16,7 @@ max_concurrent_requests=$7
 max_bandwidth=$8
 storage_class=$9
 content_disposition=${10}
+region=${11}
 
 case "${provider}" in
 "aws")
@@ -23,7 +24,7 @@ case "${provider}" in
     >&2 echo "Missing AWS secret access key"
     exit 1
   fi
-  AWS_ACCESS_KEY_ID=${key} AWS_SECRET_ACCESS_KEY=${secret} upload_aws \
+  AWS_REGION=${region} AWS_ACCESS_KEY_ID=${key} AWS_SECRET_ACCESS_KEY=${secret} upload_aws \
     "${filepath}" "${bucket}" "${destination}" "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}" "${content_disposition}"
   ;;
 "gcp")

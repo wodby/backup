@@ -17,11 +17,11 @@ docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make backup-dir \
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
   provider="aws" key="${AWS_ACCESS_KEY_ID}" gzip=1 secret="${AWS_SECRET_ACCESS_KEY}" \
-  filepath="${archive_path}" bucket="${aws_bucket}" storage_class="STANDARD_IA" content_disposition="'attachment; filename=test.tar'"
+  filepath="${archive_path}" bucket="${aws_bucket}" storage_class="STANDARD_IA" content_disposition="'attachment; filename=test.tar'" region="${AWS_REGION}"
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
   provider="aws" key="${AWS_ACCESS_KEY_ID}" secret="${AWS_SECRET_ACCESS_KEY}" \
-  filepath="${archive_path}" bucket="${aws_bucket}" destination="destination-$RANDOM.tar"
+  filepath="${archive_path}" bucket="${aws_bucket}" destination="destination-$RANDOM.tar" region="${AWS_REGION}"
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
   provider="gcp" key="${GCP_SA}" \
@@ -39,7 +39,7 @@ docker run --rm -v /tmp:/mnt "${IMAGE}" make import source="${archive_path_zip}"
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make backup-and-upload dir=/usr/include \
   provider="aws" key="${AWS_ACCESS_KEY_ID}" secret="${AWS_ACCESS_KEY}" \
-  bucket="${aws_bucket}" destination="${destination}" storage_class="STANDARD_IA"
+  bucket="${aws_bucket}" destination="${destination}" storage_class="STANDARD_IA" region="${AWS_REGION}"
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make backup-and-upload dir=/usr/include \
   provider="gcp" key="${GCP_SA}" \

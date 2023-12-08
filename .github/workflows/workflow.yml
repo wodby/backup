@@ -13,8 +13,8 @@ env:
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: us-east-1
   GCP_SA: ${{ secrets.GCP_SA }}
-  AWS_EC2_METADATA_DISABLED: true
   DEBUG: true
 
 jobs:
