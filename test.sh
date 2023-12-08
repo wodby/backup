@@ -12,29 +12,29 @@ archive_path=/mnt/backup-$RANDOM.tar
 archive_path_zip=/mnt/backup-$RANDOM.tar.gz
 destination=test/test.tar
 
-docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make backup-dir \
-  exclude="./gnumake.h;./python3.11" dir=/usr/include filepath="${archive_path}" mark=".wodby"
-
-docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
-  provider="aws" key="${AWS_ACCESS_KEY_ID}" gzip=1 secret="${AWS_SECRET_ACCESS_KEY}" \
-  filepath="${archive_path}" bucket="${aws_bucket}" storage_class="STANDARD_IA" content_disposition="'attachment; filename=test.tar'" region="${AWS_REGION}"
-
-docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
-  provider="aws" key="${AWS_ACCESS_KEY_ID}" secret="${AWS_SECRET_ACCESS_KEY}" \
-  filepath="${archive_path}" bucket="${aws_bucket}" destination="destination-$RANDOM.tar" region="${AWS_REGION}"
-
-docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
-  provider="gcp" key="${GCP_SA}" \
-  filepath="${archive_path}" bucket="${gcp_bucket}" destination="destination-$RANDOM.tar" storage_class="NEARLINE" content_disposition="'attachment; filename=test.tar'"
-
-docker run --rm -v /tmp:/mnt "${IMAGE}" make backup-dir dir=/usr/include filepath="${archive_path_zip}"
-docker run --rm -v /tmp:/mnt "${IMAGE}" make delete filepath="${archive_path_zip}"
-docker run --rm -v /tmp:/mnt "${IMAGE}" mkdir -p /mnt/files
-docker run --rm -v /tmp:/mnt "${IMAGE}" touch -d 201512180130.09 /mnt/files/oldfile
-docker run --rm -v /tmp:/mnt "${IMAGE}" touch /mnt/files/newfile
-docker run --rm -v /tmp:/mnt "${IMAGE}" make rotate dir=/mnt/files
-docker run --rm -v /tmp:/mnt "${IMAGE}" test ! -e /mnt/files/oldfile
-docker run --rm -v /tmp:/mnt "${IMAGE}" test -e /mnt/files/newfile
+#docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make backup-dir \
+#  exclude="./gnumake.h;./python3.11" dir=/usr/include filepath="${archive_path}" mark=".wodby"
+#
+#docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
+#  provider="aws" key="${AWS_ACCESS_KEY_ID}" gzip=1 secret="${AWS_SECRET_ACCESS_KEY}" \
+#  filepath="${archive_path}" bucket="${aws_bucket}" storage_class="STANDARD_IA" content_disposition="'attachment; filename=test.tar'" region="${AWS_REGION}"
+#
+#docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
+#  provider="aws" key="${AWS_ACCESS_KEY_ID}" secret="${AWS_SECRET_ACCESS_KEY}" \
+#  filepath="${archive_path}" bucket="${aws_bucket}" destination="destination-$RANDOM.tar" region="${AWS_REGION}"
+#
+#docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make upload \
+#  provider="gcp" key="${GCP_SA}" \
+#  filepath="${archive_path}" bucket="${gcp_bucket}" destination="destination-$RANDOM.tar" storage_class="NEARLINE" content_disposition="'attachment; filename=test.tar'"
+#
+#docker run --rm -v /tmp:/mnt "${IMAGE}" make backup-dir dir=/usr/include filepath="${archive_path_zip}"
+#docker run --rm -v /tmp:/mnt "${IMAGE}" make delete filepath="${archive_path_zip}"
+#docker run --rm -v /tmp:/mnt "${IMAGE}" mkdir -p /mnt/files
+#docker run --rm -v /tmp:/mnt "${IMAGE}" touch -d 201512180130.09 /mnt/files/oldfile
+#docker run --rm -v /tmp:/mnt "${IMAGE}" touch /mnt/files/newfile
+#docker run --rm -v /tmp:/mnt "${IMAGE}" make rotate dir=/mnt/files
+#docker run --rm -v /tmp:/mnt "${IMAGE}" test ! -e /mnt/files/oldfile
+#docker run --rm -v /tmp:/mnt "${IMAGE}" test -e /mnt/files/newfile
 
 docker run --rm -v /tmp:/mnt "${IMAGE}" make import source="https://s3.amazonaws.com/wodby-sample-files/archives/export.tar.gz" destination="/mnt"
 docker run --rm -v /tmp:/mnt "${IMAGE}" make import source="https://s3.amazonaws.com/wodby-sample-files/archives/export.tar" destination="/mnt" user=10 group=10

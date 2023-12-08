@@ -20,7 +20,7 @@ get_archive "${source}" "${tmp_dir}" "zip tgz tar.gz tar"
 
 if [[ -f "${tmp_dir}/.wodby" ]]; then
   echo "Wodby backup archive detected"
-  if [[ -d "${tmp_dir}/private" || -d "${tmp_dir}/public") ]]; then
+  if [[ -d "${tmp_dir}/private" || -d "${tmp_dir}/public" ]]; then
     echo "Detected private and public directories in source, importing to destination's top directory"
     sync_files "${dest}"
   else
