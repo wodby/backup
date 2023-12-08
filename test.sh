@@ -49,4 +49,4 @@ docker run --rm -v "${tmp_dir}":/mnt -e DEBUG "${IMAGE}" make backup-and-upload 
   provider="gcp" key="${GCP_SA}" \
   bucket="${gcp_bucket}" destination="${destination}" storage_class="NEARLINE"
 
-rm -rf "${tmp_dir}"
+docker run --rm -v "${tmp_dir}":/mnt -e DEBUG sh -c 'rm -rf /mnt/*'
