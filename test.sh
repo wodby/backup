@@ -38,8 +38,8 @@ docker run --rm -v "${tmp_dir}":/mnt "${IMAGE}" test ! -e /mnt/files/oldfile
 docker run --rm -v "${tmp_dir}":/mnt "${IMAGE}" test -e /mnt/files/newfile
 
 docker run --rm -v "${tmp_dir}":/mnt "${IMAGE}" make import source="https://s3.amazonaws.com/wodby-sample-files/archives/export.tar.gz" destination="/mnt"
-docker run --rm -v "${tmp_dir}":/mnt "${IMAGE}" make import source="https://s3.amazonaws.com/wodby-sample-files/archives/export.tar" destination="/mnt" user=10 group=10
-docker run --rm -v "${tmp_dir}":/mnt "${IMAGE}" make import source="https://s3.amazonaws.com/wodby-sample-files/archives/export.zip" destination="/mnt" user=11 group=11
+docker run --rm -v "${tmp_dir}":/mnt "${IMAGE}" make import source="https://s3.amazonaws.com/wodby-sample-files/archives/export.tar" destination="/mnt" owner=10 group=10
+docker run --rm -v "${tmp_dir}":/mnt "${IMAGE}" make import source="https://s3.amazonaws.com/wodby-sample-files/archives/export.zip" destination="/mnt" owner=11 group=11
 
 docker run --rm -v "${tmp_dir}":/mnt -e DEBUG "${IMAGE}" make backup-and-upload dir=/usr/include \
   provider="aws" key="${AWS_ACCESS_KEY_ID}" secret="${AWS_SECRET_ACCESS_KEY}" \
