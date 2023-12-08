@@ -35,7 +35,10 @@ docker run --rm -v /tmp:/mnt "${IMAGE}" touch /mnt/files/newfile
 docker run --rm -v /tmp:/mnt "${IMAGE}" make rotate dir=/mnt/files
 docker run --rm -v /tmp:/mnt "${IMAGE}" test ! -e /mnt/files/oldfile
 docker run --rm -v /tmp:/mnt "${IMAGE}" test -e /mnt/files/newfile
-docker run --rm -v /tmp:/mnt "${IMAGE}" make import source="${archive_path_zip}"
+
+docker run --rm -v /tmp:/mnt "${IMAGE}" make import source="https://s3.amazonaws.com/wodby-sample-files/archives/export.tar.gz"
+docker run --rm -v /tmp:/mnt "${IMAGE}" make import source="https://s3.amazonaws.com/wodby-sample-files/archives/export.tar"
+docker run --rm -v /tmp:/mnt "${IMAGE}" make import source="https://s3.amazonaws.com/wodby-sample-files/archives/export.zip"
 
 docker run --rm -v /tmp:/mnt -e DEBUG "${IMAGE}" make backup-and-upload dir=/usr/include \
   provider="aws" key="${AWS_ACCESS_KEY_ID}" secret="${AWS_ACCESS_KEY}" \
