@@ -10,13 +10,18 @@ source=$1
 dest=$2
 owner=$3
 group=$4
+allowed=$5
 tmp_dir="/tmp/source"
 
 sync_files() {
   files_sync "${tmp_dir}/" "${1}" "${owner}" "${group}"
 }
 
-get_archive "${source}" "${tmp_dir}" "zip tgz tar.gz tar"
+if [[ -z "${allowed}" ]]; then
+  allowed="zip tgz tar.gz tar gz"
+fi
+
+get_archive "${source}" "${tmp_dir}" "${allowed}"
 
 if [[ -f "${tmp_dir}/.wodby" ]]; then
   echo "Wodby backup archive detected"

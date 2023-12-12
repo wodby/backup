@@ -42,7 +42,7 @@ backup-and-upload:
 
 import:
 	$(call check_defined, source, destination)
-	import $(source) $(destination) $(owner) $(group)
+	import $(source) $(destination) $(owner) $(group) $(allowed)
 .PHONY: import
 
 rotate:

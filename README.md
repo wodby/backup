@@ -30,7 +30,7 @@ commands:
     upload provider filepath key secret bucket [destination max_concurrent_requests max_bandwidth storage_class content_disposition region]
     backup-and-upload dir provider key secret bucket destination [gzip max_concurrent_requests max_bandwidth storage_class content_disposition region] 
     delete filepath 
-    import source destination owner group  
+    import source destination [owner group allowed] 
 
 default param values:
     days 7
