@@ -12,7 +12,7 @@ mark ?= ""
 secret ?= ""
 destination ?= ""
 content_disposition ?= ""
-delete ?= ""
+delete ?= "0"
 
 max_concurrent_requests ?= 1
 max_bandwidth = ""
@@ -43,7 +43,7 @@ backup-and-upload:
 
 import:
 	$(call check_defined, source, destination)
-	import $(source) $(destination) $(owner) $(group) $(allowed) $(delete)
+	import $(source) $(destination) $(delete) $(owner) $(group) $(allowed)
 .PHONY: import
 
 rotate:
