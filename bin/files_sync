@@ -12,7 +12,7 @@ owner="${3}"
 group="${4}"
 delete="${5}"
 
-local params=""
+params=""
 
 if [[ -n "${owner}" && "${group}" ]]; then
   echo "Owner and group specified, using rsync with chown"
