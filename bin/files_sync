@@ -12,16 +12,17 @@ owner="${3}"
 group="${4}"
 delete="${5}"
 
-params=""
+chown=""
+del=""
 
 if [[ -n "${owner}" && "${group}" ]]; then
   echo "Owner and group specified, using rsync with chown"
-  params="${params} --chown=\"${owner}:${group}\""
+  chown="--chown=${owner}:${group}"
 fi
 
 if [[ -n "${delete}" ]]; then
   echo "Delete flag specified. Will delete files in destination that are not in source"
-  params="${params} --delete"
+  del="--delete"
 fi
 
-rsync -rltpog "${params}" "${from}" "${to}"
+rsync -rltpog ${chown} ${del} "${from}" "${to}"
