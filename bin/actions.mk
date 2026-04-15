@@ -13,10 +13,11 @@ secret ?= ""
 destination ?= ""
 content_disposition ?= ""
 delete ?= "0"
+endpoint_url ?= ""
 
 max_concurrent_requests ?= 1
 max_bandwidth = ""
-storage_class ?= STANDARD
+storage_class ?= ""
 
 default: backup-dir
 
@@ -30,7 +31,7 @@ upload:
 	upload \
 		$(provider) $(key) $(secret) \
 		$(filepath) $(bucket) $(destination) \
-		$(max_concurrent_requests) $(max_bandwidth) $(storage_class) $(content_disposition) $(region)
+		$(max_concurrent_requests) $(max_bandwidth) $(storage_class) $(content_disposition) $(region) $(endpoint_url)
 .PHONY: upload
 
 backup-and-upload:
@@ -38,7 +39,7 @@ backup-and-upload:
 	backup_and_upload \
 		$(provider) $(key) $(secret) \
 		$(dir) $(gzip) $(exclude) $(mark) $(bucket) $(destination) \
-		$(max_concurrent_requests) $(max_bandwidth) $(storage_class) $(content_disposition) $(region)
+		$(max_concurrent_requests) $(max_bandwidth) $(storage_class) $(content_disposition) $(region) $(endpoint_url)
 .PHONY: backup-and-upload
 
 import:

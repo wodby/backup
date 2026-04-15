@@ -17,6 +17,7 @@ max_concurrent_requests=$4
 max_bandwidth=$5
 storage_class=$6
 content_disposition=$7
+endpoint_url=$8
 
 configure_aws "${max_concurrent_requests}" "${max_bandwidth}"
 
@@ -25,6 +26,9 @@ if [[ "${storage_class}" ]]; then
 fi
 if [[ "${content_disposition}" ]]; then
   flags+=(--content-disposition "${content_disposition}")
+fi
+if [[ "${endpoint_url}" ]]; then
+  flags+=(--endpoint-url "${endpoint_url}")
 fi
 
 aws s3 cp "${filepath}" "s3://${bucket}/${destination}" "${flags[@]}"

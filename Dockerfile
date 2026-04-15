@@ -1,4 +1,4 @@
-FROM wodby/alpine:3.19-2.14.1
+FROM wodby/alpine
 
 ENV PATH="${PATH}:/usr/local/google-cloud-sdk/bin"
 

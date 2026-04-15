@@ -3,6 +3,15 @@
 REPO = wodby/backup
 NAME = wodby-backup
 
+ALPINE_VER ?= 3.23
+
+ifeq ($(BASE_IMAGE_STABILITY_TAG),)
+    BASE_IMAGE_TAG := $(ALPINE_VER)
+else
+    BASE_IMAGE_TAG := $(ALPINE_VER)-$(BASE_IMAGE_STABILITY_TAG)
+endif
+
+
 ifneq ($(STABILITY_TAG),)
     override TAG := $(STABILITY_TAG)
 else
@@ -21,16 +30,16 @@ build:
 # --load doesn't work with multiple platforms https://github.com/docker/buildx/issues/59
 # we need to save cache to run tests first.
 buildx-build-amd64:
-	docker buildx build --platform linux/amd64 -t $(REPO):$(TAG) \
+	docker buildx build --platform linux/amd64 --build-arg BASE_IMAGE_TAG -t $(REPO):$(TAG) \
 		--load \
 		./
 
 buildx-build:
-	docker buildx build --platform $(PLATFORM) -t $(REPO):$(TAG) \
+	docker buildx build --platform $(PLATFORM)  --build-arg BASE_IMAGE_TAG -t $(REPO):$(TAG) \
 		./
 
 buildx-push:
-	docker buildx build --platform $(PLATFORM) --push -t $(REPO):$(TAG) \
+	docker buildx build --platform $(PLATFORM)  --build-arg BASE_IMAGE_TAG --push -t $(REPO):$(TAG) \
 		./
 
 test:

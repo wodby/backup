@@ -9,6 +9,7 @@ on:
     - '*'
 
 env:
+  BASE_IMAGE_STABILITY_TAG: 2.19.4
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
