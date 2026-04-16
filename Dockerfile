@@ -7,6 +7,7 @@ RUN set -ex; \
     apk add --update --no-cache -t .backup-rundeps \
         make \
         aws-cli \
+        rclone \
         rsync \
         doctl; \
     \

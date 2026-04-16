@@ -8,6 +8,10 @@ fi
 
 aws_bucket=wodby-mirroring-testing
 gcp_bucket=wodby-backup-tests
+azure_container=${AZURE_BLOB_CONTAINER:-}
+azure_account=${AZURE_STORAGE_ACCOUNT:-}
+azure_key=${AZURE_STORAGE_KEY:-}
+azure_endpoint=${AZURE_STORAGE_ENDPOINT:-}
 archive_path=/mnt/backup-$RANDOM.tar
 archive_path_zip=/mnt/backup-$RANDOM.tar.gz
 destination=test/test.tar
@@ -27,6 +31,15 @@ docker run --rm -v "${tmp_dir}":/mnt -e DEBUG "${IMAGE}" make upload \
 docker run --rm -v "${tmp_dir}":/mnt -e DEBUG "${IMAGE}" make upload \
   provider="gcp" key="${GCP_SA}" \
   filepath="${archive_path}" bucket="${gcp_bucket}" destination="destination-$RANDOM.tar" storage_class="NEARLINE" content_disposition="'attachment; filename=test.tar'"
+
+if [[ -n "${azure_account}" && -n "${azure_key}" && -n "${azure_container}" ]]; then
+  docker run --rm -v "${tmp_dir}":/mnt -e DEBUG "${IMAGE}" make upload \
+    provider="azure" key="${azure_account}" secret="${azure_key}" \
+    filepath="${archive_path}" bucket="${azure_container}" destination="destination-$RANDOM.tar" \
+    storage_class="Cool" content_disposition="'attachment; filename=test.tar'" endpoint_url="${azure_endpoint}"
+else
+  echo "Skipping Azure upload test because AZURE_STORAGE_ACCOUNT, AZURE_STORAGE_KEY, or AZURE_BLOB_CONTAINER is not set"
+fi
 
 docker run --rm -v "${tmp_dir}":/mnt "${IMAGE}" make backup-dir dir=/usr/include filepath="${archive_path_zip}"
 docker run --rm -v "${tmp_dir}":/mnt "${IMAGE}" make delete filepath="${archive_path_zip}"
@@ -48,5 +61,13 @@ docker run --rm -v "${tmp_dir}":/mnt -e DEBUG "${IMAGE}" make backup-and-upload 
 docker run --rm -v "${tmp_dir}":/mnt -e DEBUG "${IMAGE}" make backup-and-upload dir=/usr/include \
   provider="gcp" key="${GCP_SA}" \
   bucket="${gcp_bucket}" destination="${destination}" storage_class="NEARLINE"
+
+if [[ -n "${azure_account}" && -n "${azure_key}" && -n "${azure_container}" ]]; then
+  docker run --rm -v "${tmp_dir}":/mnt -e DEBUG "${IMAGE}" make backup-and-upload dir=/usr/include \
+    provider="azure" key="${azure_account}" secret="${azure_key}" \
+    bucket="${azure_container}" destination="${destination}" storage_class="Cool" endpoint_url="${azure_endpoint}"
+else
+  echo "Skipping Azure backup-and-upload test because AZURE_STORAGE_ACCOUNT, AZURE_STORAGE_KEY, or AZURE_BLOB_CONTAINER is not set"
+fi
 
 docker run --rm -v "${tmp_dir}":/mnt -e DEBUG "${IMAGE}" sh -c 'rm -rf /mnt/*'

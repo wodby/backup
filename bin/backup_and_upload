@@ -33,6 +33,16 @@ case "${provider}" in
     "${dir}" "${gzip}" "${exclude_paths}" "${mark}" \
     "${bucket}" "${destination}" "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}" "${content_disposition}" "${endpoint_url}"
   ;;
+"azure")
+  if [[ -z "${secret}" ]]; then
+    echo >&2 "Missing Azure storage account key"
+    exit 1
+  fi
+  backup_and_upload_azure \
+    "${dir}" "${gzip}" "${exclude_paths}" "${mark}" \
+    "${key}" "${secret}" "${bucket}" "${destination}" \
+    "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}" "${content_disposition}" "${endpoint_url}"
+  ;;
 "gcp")
   if [[ ! -f "${key}" ]]; then
     echo "${key}" | base64 -d >/tmp/sa.json

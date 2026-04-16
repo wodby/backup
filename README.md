@@ -39,6 +39,8 @@ default param values:
 
 Notes:
 * `provider=aws` uses the AWS CLI S3 flow and defaults `storage_class` to `STANDARD`
+* `provider=azure` uses `rclone` Azure Blob upload, where `key` is the storage account name, `secret` is the storage account key, `bucket` is the container name, and `storage_class` maps to the Azure access tier (`hot`, `cool`, `cold`, `archive`)
+* `provider=azure` accepts `endpoint_url` for custom Blob endpoints such as Azurite
 * any non-`aws`, non-`gcp` provider is treated as S3-compatible and requires `endpoint_url`
 * S3 uploads use AWS CLI `path` addressing style for broader compatibility
 ```

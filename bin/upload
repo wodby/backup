@@ -29,6 +29,15 @@ case "${provider}" in
   AWS_REGION=${region} AWS_ACCESS_KEY_ID=${key} AWS_SECRET_ACCESS_KEY=${secret} upload_aws \
     "${filepath}" "${bucket}" "${destination}" "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}" "${content_disposition}" "${endpoint_url}"
   ;;
+"azure")
+  if [[ -z "${secret}" ]]; then
+    >&2 echo "Missing Azure storage account key"
+    exit 1
+  fi
+  upload_azure \
+    "${key}" "${secret}" "${filepath}" "${bucket}" "${destination}" \
+    "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}" "${content_disposition}" "${endpoint_url}"
+  ;;
 "gcp")
   if [[ ! -f "${key}" ]]; then
     echo "${key}" | base64 -d > /tmp/sa.json

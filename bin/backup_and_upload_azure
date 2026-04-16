@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [[ -n "${DEBUG}" ]]; then
+  set -x
+fi
+
+dir=$1
+gzip=$2
+exclude_paths=$3
+mark=$4
+account=$5
+secret=$6
+container=$7
+destination=$8
+max_concurrent_requests=$9
+max_bandwidth=${10}
+storage_class=${11}
+content_disposition=${12}
+endpoint_url=${13}
+
+flags=(--config /dev/null --azureblob-no-check-container)
+access_tier=""
+
+if [[ -n "${max_concurrent_requests}" ]]; then
+  flags+=(--azureblob-upload-concurrency "${max_concurrent_requests}")
+fi
+if [[ -n "${max_bandwidth}" ]]; then
+  flags+=(--bwlimit "${max_bandwidth}M")
+fi
+if [[ -n "${storage_class}" ]]; then
+  access_tier=$(printf '%s' "${storage_class}" | tr '[:upper:]' '[:lower:]')
+  flags+=(--azureblob-access-tier "${access_tier}")
+fi
+if [[ -n "${content_disposition}" ]]; then
+  flags+=(--metadata-set "content-disposition=${content_disposition}")
+fi
+if [[ -n "${endpoint_url}" ]]; then
+  flags+=(--azureblob-endpoint "${endpoint_url}")
+fi
+
+export RCLONE_AZUREBLOB_ACCOUNT="${account}"
+export RCLONE_AZUREBLOB_KEY="${secret}"
+
+pack "${dir}" "-" "${gzip}" "${exclude_paths}" "${mark}" | rclone rcat ":azureblob:${container}/${destination}" "${flags[@]}"
