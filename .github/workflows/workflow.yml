@@ -10,12 +10,7 @@ on:
 
 env:
   BASE_IMAGE_STABILITY_TAG: 2.19.4
-  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   AWS_REGION: us-east-1
-  GCP_SA: ${{ secrets.GCP_SA }}
   DEBUG: true
 
 jobs:
@@ -28,6 +23,12 @@ jobs:
         platforms: amd64
     - uses: docker/setup-buildx-action@v3
     - uses: ./.github/actions
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        GCP_SA: ${{ secrets.GCP_SA }}
       with:
         tags: latest
         platform: linux/amd64
