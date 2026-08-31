@@ -10,6 +10,7 @@ gzip ?= ""
 exclude ?= ""
 mark ?= ""
 secret ?= ""
+key ?= ""
 destination ?= ""
 content_disposition ?= ""
 delete ?= "0"
@@ -27,19 +28,19 @@ backup-dir:
 .PHONY: backup-dir
 
 upload:
-	$(call check_defined, provider, key, bucket, filepath)
-	upload \
-		$(provider) $(key) $(secret) \
-		$(filepath) $(bucket) $(destination) \
-		$(max_concurrent_requests) $(max_bandwidth) $(storage_class) $(content_disposition) $(region) $(endpoint_url)
+	$(call check_defined, provider, bucket, filepath)
+	@upload \
+		"$(provider)" "$(key)" "$(secret)" \
+		"$(filepath)" "$(bucket)" "$(destination)" \
+		"$(max_concurrent_requests)" "$(max_bandwidth)" "$(storage_class)" "$(content_disposition)" "$(region)" "$(endpoint_url)"
 .PHONY: upload
 
 backup-and-upload:
-	$(call check_defined, provider, dir, key, bucket, destination)
-	backup_and_upload \
-		$(provider) $(key) $(secret) \
-		$(dir) $(gzip) $(exclude) $(mark) $(bucket) $(destination) \
-		$(max_concurrent_requests) $(max_bandwidth) $(storage_class) $(content_disposition) $(region) $(endpoint_url)
+	$(call check_defined, provider, dir, bucket, destination)
+	@backup_and_upload \
+		"$(provider)" "$(key)" "$(secret)" \
+		"$(dir)" "$(gzip)" "$(exclude)" "$(mark)" "$(bucket)" "$(destination)" \
+		"$(max_concurrent_requests)" "$(max_bandwidth)" "$(storage_class)" "$(content_disposition)" "$(region)" "$(endpoint_url)"
 .PHONY: backup-and-upload
 
 import:

@@ -2,20 +2,14 @@
 
 set -e
 
-if [[ -n "${DEBUG}" ]]; then
-  set -x
-fi
-
-account=$1
-secret=$2
-filepath=$3
-container=$4
-destination=$5
-max_concurrent_requests=$6
-max_bandwidth=$7
-storage_class=$8
-content_disposition=$9
-endpoint_url=${10}
+filepath=$1
+container=$2
+destination=$3
+max_concurrent_requests=$4
+max_bandwidth=$5
+storage_class=$6
+content_disposition=$7
+endpoint_url=$8
 
 flags=(--config /dev/null --azureblob-no-check-container)
 access_tier=""
@@ -39,7 +33,7 @@ fi
 
 destination=${destination:-$(basename "${filepath}")}
 
-export RCLONE_AZUREBLOB_ACCOUNT="${account}"
-export RCLONE_AZUREBLOB_KEY="${secret}"
+export RCLONE_AZUREBLOB_ACCOUNT="${AZURE_STORAGE_ACCOUNT}"
+export RCLONE_AZUREBLOB_KEY="${AZURE_STORAGE_KEY}"
 
 rclone copyto "${filepath}" ":azureblob:${container}/${destination}" "${flags[@]}"

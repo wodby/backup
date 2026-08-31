@@ -20,6 +20,7 @@ runs:
       PLATFORM: ${{ inputs.platform }}
     run: |
       set -e
+      tests/credential_safety.sh
       make buildx-build-amd64
       make test
       make buildx-build
