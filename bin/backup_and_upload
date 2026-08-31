@@ -2,13 +2,9 @@
 
 set -e
 
-if [[ -n "${DEBUG}" ]]; then
-  set -x
-fi
-
 provider=$1
-key=$2
-secret=$3
+legacy_key=$2
+legacy_secret=$3
 dir=$4
 gzip=$5
 exclude_paths=$6
@@ -21,39 +17,80 @@ storage_class=${12}
 content_disposition=${13}
 region=${14}
 endpoint_url=${15}
+credential_file=""
+
+cleanup() {
+  if [[ -n "${credential_file}" ]]; then
+    rm -f "${credential_file}"
+  fi
+}
+
+trap cleanup EXIT
 
 case "${provider}" in
 "aws")
-  if [[ -z "${secret}" ]]; then
+  if [[ -n "${legacy_key}" ]]; then
+    export AWS_ACCESS_KEY_ID="${legacy_key}"
+  fi
+  if [[ -n "${legacy_secret}" ]]; then
+    export AWS_SECRET_ACCESS_KEY="${legacy_secret}"
+  fi
+  if [[ -n "${region}" ]]; then
+    export AWS_REGION="${region}"
+  fi
+  if [[ -z "${AWS_ACCESS_KEY_ID:-}" || -z "${AWS_SECRET_ACCESS_KEY:-}" ]]; then
     echo >&2 "Missing AWS secret access key"
     exit 1
   fi
   storage_class=${storage_class:-STANDARD}
-  AWS_REGION=${region} AWS_ACCESS_KEY_ID=${key} AWS_SECRET_ACCESS_KEY=${secret} backup_and_upload_aws \
+  backup_and_upload_aws \
     "${dir}" "${gzip}" "${exclude_paths}" "${mark}" \
     "${bucket}" "${destination}" "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}" "${content_disposition}" "${endpoint_url}"
   ;;
 "azure")
-  if [[ -z "${secret}" ]]; then
+  if [[ -n "${legacy_key}" ]]; then
+    export AZURE_STORAGE_ACCOUNT="${legacy_key}"
+  fi
+  if [[ -n "${legacy_secret}" ]]; then
+    export AZURE_STORAGE_KEY="${legacy_secret}"
+  fi
+  endpoint_url=${endpoint_url:-${AZURE_STORAGE_ENDPOINT:-}}
+  if [[ -z "${AZURE_STORAGE_ACCOUNT}" || -z "${AZURE_STORAGE_KEY}" ]]; then
     echo >&2 "Missing Azure storage account key"
     exit 1
   fi
   backup_and_upload_azure \
     "${dir}" "${gzip}" "${exclude_paths}" "${mark}" \
-    "${key}" "${secret}" "${bucket}" "${destination}" \
+    "${bucket}" "${destination}" \
     "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}" "${content_disposition}" "${endpoint_url}"
   ;;
 "gcp")
-  if [[ ! -f "${key}" ]]; then
-    echo "${key}" | base64 -d >/tmp/sa.json
-    key=/tmp/sa.json
+  gcp_credentials=${legacy_key:-${GOOGLE_APPLICATION_CREDENTIALS:-${GCP_SA:-}}}
+  if [[ -z "${gcp_credentials}" ]]; then
+    echo >&2 "Missing GCP service account credentials"
+    exit 1
+  fi
+  if [[ ! -f "${gcp_credentials}" ]]; then
+    credential_file=$(mktemp /tmp/gcp-sa.XXXXXX)
+    chmod 600 "${credential_file}"
+    printf '%s' "${gcp_credentials}" | base64 -d > "${credential_file}"
+    gcp_credentials=${credential_file}
   fi
   backup_and_upload_gcp \
     "${dir}" "${gzip}" "${exclude_paths}" "${mark}" \
-    "${key}" "${bucket}" "${destination}" "${storage_class}" "${content_disposition}"
+    "${gcp_credentials}" "${bucket}" "${destination}" "${storage_class}" "${content_disposition}"
   ;;
 *)
-  if [[ -z "${secret}" ]]; then
+  if [[ -n "${legacy_key}" ]]; then
+    export AWS_ACCESS_KEY_ID="${legacy_key}"
+  fi
+  if [[ -n "${legacy_secret}" ]]; then
+    export AWS_SECRET_ACCESS_KEY="${legacy_secret}"
+  fi
+  if [[ -n "${region}" ]]; then
+    export AWS_REGION="${region}"
+  fi
+  if [[ -z "${AWS_ACCESS_KEY_ID:-}" || -z "${AWS_SECRET_ACCESS_KEY:-}" ]]; then
     echo >&2 "Missing S3 secret access key"
     exit 1
   fi
@@ -61,7 +98,7 @@ case "${provider}" in
     echo >&2 "Missing S3 endpoint URL"
     exit 1
   fi
-  AWS_REGION=${region} AWS_ACCESS_KEY_ID=${key} AWS_SECRET_ACCESS_KEY=${secret} backup_and_upload_aws \
+  backup_and_upload_aws \
     "${dir}" "${gzip}" "${exclude_paths}" "${mark}" \
     "${bucket}" "${destination}" "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}" "${content_disposition}" "${endpoint_url}"
   ;;
