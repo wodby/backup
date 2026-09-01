@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [[ -n "${DEBUG}" ]]; then
+  set -x
+fi
+
+stream_dir=$1
+
+mkdir -p "${stream_dir}"
+chmod 0777 "${stream_dir}"
+mkfifo "${stream_dir}/data"
+touch "${stream_dir}/status"
+chmod 0666 "${stream_dir}/data" "${stream_dir}/status"
