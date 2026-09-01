@@ -1,0 +1,178 @@
+#!/usr/bin/env bash
+
+set -Eeo pipefail
+
+provider=$1
+key=$2
+secret=$3
+stream_path=$4
+status_path=$5
+bucket=$6
+destination=$7
+temporary_destination=$8
+max_concurrent_requests=$9
+max_bandwidth=${10}
+storage_class=${11}
+content_disposition=${12}
+region=${13}
+endpoint_url=${14}
+
+flags=(--config /dev/null)
+published=0
+temporary_remote=""
+
+cleanup() {
+  if [[ "${published}" == "0" && -n "${temporary_remote}" ]]; then
+    rclone deletefile "${temporary_remote}" "${flags[@]}" >/dev/null 2>&1 || true
+  fi
+}
+trap cleanup EXIT
+
+if [[ -n "${max_bandwidth}" ]]; then
+  flags+=(--bwlimit "${max_bandwidth}M")
+fi
+if [[ -n "${content_disposition}" ]]; then
+  flags+=(--header-upload "Content-Disposition: ${content_disposition}")
+fi
+
+case "${provider}" in
+"aws")
+  if [[ -z "${secret}" ]]; then
+    echo >&2 "Missing AWS secret access key"
+    exit 1
+  fi
+  export RCLONE_CONFIG_STREAM_TYPE=s3
+  export RCLONE_CONFIG_STREAM_PROVIDER=AWS
+  export RCLONE_CONFIG_STREAM_ACCESS_KEY_ID="${key}"
+  export RCLONE_CONFIG_STREAM_SECRET_ACCESS_KEY="${secret}"
+  export RCLONE_CONFIG_STREAM_REGION="${region}"
+  export RCLONE_CONFIG_STREAM_ENDPOINT="${endpoint_url}"
+  if [[ -n "${max_concurrent_requests}" ]]; then
+    flags+=(--s3-upload-concurrency "${max_concurrent_requests}")
+  fi
+  if [[ -n "${storage_class}" ]]; then
+    flags+=(--s3-storage-class "${storage_class}")
+  fi
+  ;;
+"digitalocean")
+  if [[ -z "${secret}" ]]; then
+    echo >&2 "Missing S3 secret access key"
+    exit 1
+  fi
+  if [[ -z "${endpoint_url}" ]]; then
+    echo >&2 "Missing S3 endpoint URL"
+    exit 1
+  fi
+  export RCLONE_CONFIG_STREAM_TYPE=s3
+  export RCLONE_CONFIG_STREAM_PROVIDER=DigitalOcean
+  export RCLONE_CONFIG_STREAM_ACCESS_KEY_ID="${key}"
+  export RCLONE_CONFIG_STREAM_SECRET_ACCESS_KEY="${secret}"
+  export RCLONE_CONFIG_STREAM_REGION="${region}"
+  export RCLONE_CONFIG_STREAM_ENDPOINT="${endpoint_url}"
+  if [[ -n "${max_concurrent_requests}" ]]; then
+    flags+=(--s3-upload-concurrency "${max_concurrent_requests}")
+  fi
+  ;;
+"cloudflare")
+  if [[ -z "${secret}" ]]; then
+    echo >&2 "Missing R2 secret access key"
+    exit 1
+  fi
+  if [[ -z "${endpoint_url}" ]]; then
+    echo >&2 "Missing R2 endpoint URL"
+    exit 1
+  fi
+  export RCLONE_CONFIG_STREAM_TYPE=s3
+  export RCLONE_CONFIG_STREAM_PROVIDER=Cloudflare
+  export RCLONE_CONFIG_STREAM_ACCESS_KEY_ID="${key}"
+  export RCLONE_CONFIG_STREAM_SECRET_ACCESS_KEY="${secret}"
+  export RCLONE_CONFIG_STREAM_REGION="${region}"
+  export RCLONE_CONFIG_STREAM_ENDPOINT="${endpoint_url}"
+  if [[ -n "${max_concurrent_requests}" ]]; then
+    flags+=(--s3-upload-concurrency "${max_concurrent_requests}")
+  fi
+  if [[ -n "${storage_class}" ]]; then
+    flags+=(--s3-storage-class "${storage_class}")
+  fi
+  ;;
+"backblaze")
+  if [[ -z "${secret}" ]]; then
+    echo >&2 "Missing B2 application key"
+    exit 1
+  fi
+  if [[ -z "${endpoint_url}" ]]; then
+    echo >&2 "Missing B2 S3 endpoint URL"
+    exit 1
+  fi
+  export RCLONE_CONFIG_STREAM_TYPE=s3
+  export RCLONE_CONFIG_STREAM_PROVIDER=Other
+  export RCLONE_CONFIG_STREAM_ACCESS_KEY_ID="${key}"
+  export RCLONE_CONFIG_STREAM_SECRET_ACCESS_KEY="${secret}"
+  export RCLONE_CONFIG_STREAM_REGION="${region}"
+  export RCLONE_CONFIG_STREAM_ENDPOINT="${endpoint_url}"
+  if [[ -n "${max_concurrent_requests}" ]]; then
+    flags+=(--s3-upload-concurrency "${max_concurrent_requests}")
+  fi
+  ;;
+"gcp")
+  if [[ ! -f "${key}" ]]; then
+    echo >&2 "Google service account file does not exist"
+    exit 1
+  fi
+  export RCLONE_CONFIG_STREAM_TYPE="google cloud storage"
+  export RCLONE_CONFIG_STREAM_SERVICE_ACCOUNT_FILE="${key}"
+  if [[ -n "${storage_class}" ]]; then
+    flags+=(--gcs-storage-class "${storage_class}")
+  fi
+  ;;
+"azure")
+  if [[ -z "${secret}" ]]; then
+    echo >&2 "Missing Azure storage account key"
+    exit 1
+  fi
+  export RCLONE_CONFIG_STREAM_TYPE=azureblob
+  export RCLONE_CONFIG_STREAM_ACCOUNT="${key}"
+  export RCLONE_CONFIG_STREAM_KEY="${secret}"
+  if [[ -n "${endpoint_url}" ]]; then
+    flags+=(--azureblob-endpoint "${endpoint_url}")
+  fi
+  if [[ -n "${max_concurrent_requests}" ]]; then
+    flags+=(--azureblob-upload-concurrency "${max_concurrent_requests}")
+  fi
+  if [[ -n "${storage_class}" ]]; then
+    access_tier=$(printf '%s' "${storage_class}" | tr '[:upper:]' '[:lower:]')
+    flags+=(--azureblob-access-tier "${access_tier}")
+  fi
+  ;;
+*)
+  echo >&2 "Unsupported stream upload provider ${provider}"
+  exit 1
+  ;;
+esac
+
+temporary_remote="stream:${bucket}/${temporary_destination}"
+destination_remote="stream:${bucket}/${destination}"
+
+rclone rcat "${temporary_remote}" "${flags[@]}" < "${stream_path}"
+
+# EOF can reach the uploader just before the producer writes its atomic status.
+for _ in $(seq 1 60); do
+  if [[ -s "${status_path}" ]]; then
+    break
+  fi
+  sleep 1
+done
+
+if [[ ! -s "${status_path}" ]]; then
+  echo >&2 "Backup producer did not report its status"
+  exit 1
+fi
+
+producer_status=$(tr -d '[:space:]' < "${status_path}")
+if [[ "${producer_status}" != "0" ]]; then
+  echo >&2 "Backup producer failed with exit code ${producer_status}"
+  exit 1
+fi
+
+rclone moveto "${temporary_remote}" "${destination_remote}" --metadata "${flags[@]}"
+published=1

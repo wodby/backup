@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+set -Eeo pipefail
+
+provider=$1
+key=$2
+secret=$3
+dir=$4
+gzip=$5
+exclude_paths=$6
+mark=$7
+bucket=$8
+destination=$9
+temporary_destination=${10}
+max_concurrent_requests=${11}
+max_bandwidth=${12}
+storage_class=${13}
+content_disposition=${14}
+region=${15}
+endpoint_url=${16}
+
+stream_dir=$(mktemp -d /tmp/wodby-backup-stream.XXXXXX)
+producer_pid=""
+
+cleanup() {
+  if [[ -n "${producer_pid}" ]]; then
+    kill "${producer_pid}" >/dev/null 2>&1 || true
+    wait "${producer_pid}" >/dev/null 2>&1 || true
+  fi
+  rm -rf "${stream_dir}"
+}
+trap cleanup EXIT
+
+stream_init "${stream_dir}"
+pack_stream "${dir}" "${stream_dir}/data" "${stream_dir}/status" "${gzip}" "${exclude_paths}" "${mark}" &
+producer_pid=$!
+
+stream_upload \
+  "${provider}" "${key}" "${secret}" \
+  "${stream_dir}/data" "${stream_dir}/status" \
+  "${bucket}" "${destination}" "${temporary_destination}" \
+  "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}" \
+  "${content_disposition}" "${region}" "${endpoint_url}"
+
+wait "${producer_pid}"
+producer_pid=""

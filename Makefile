@@ -43,6 +43,7 @@ buildx-push:
 		./
 
 test:
+	./test-unit.sh
 	IMAGE=$(REPO):$(TAG) ./test.sh
 
 push:

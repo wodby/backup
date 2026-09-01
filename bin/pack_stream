@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -Eeo pipefail
+
+if [[ -n "${DEBUG}" ]]; then
+  set -x
+fi
+
+dir=$1
+stream_path=$2
+status_path=$3
+gzip=$4
+exclude_paths=$5
+mark=$6
+
+write_status() {
+  exit_code=$?
+  status_tmp="${status_path}.tmp.$$"
+  printf '%s\n' "${exit_code}" > "${status_tmp}"
+  mv "${status_tmp}" "${status_path}"
+}
+trap write_status EXIT
+
+# Connect to the reader before preparing the archive. If preparation then
+# fails, closing this descriptor still delivers EOF to the uploader.
+exec 3> "${stream_path}"
+
+set +e
+pack "${dir}" - "${gzip}" "${exclude_paths}" "${mark}" >&3
+exit_code=$?
+set -e
+
+# GNU tar returns 1 when files changed while being archived. Existing Wodby
+# file backups deliberately accept that result, so preserve that behavior.
+if [[ "${exit_code}" == "1" ]]; then
+  exit_code=0
+fi
+
+exit "${exit_code}"

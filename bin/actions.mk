@@ -43,6 +43,27 @@ backup-and-upload:
 		"$(max_concurrent_requests)" "$(max_bandwidth)" "$(storage_class)" "$(content_disposition)" "$(region)" "$(endpoint_url)"
 .PHONY: backup-and-upload
 
+backup-and-upload-stream:
+	$(call check_defined, provider, dir, bucket, destination, temporary_destination)
+	@backup_and_upload_stream \
+		"$(provider)" "$(key)" "$(secret)" \
+		"$(dir)" "$(gzip)" "$(exclude)" "$(mark)" "$(bucket)" "$(destination)" "$(temporary_destination)" \
+		"$(max_concurrent_requests)" "$(max_bandwidth)" "$(storage_class)" "$(content_disposition)" "$(region)" "$(endpoint_url)"
+.PHONY: backup-and-upload-stream
+
+stream-init:
+	$(call check_defined, stream_dir)
+	stream_init "$(stream_dir)"
+.PHONY: stream-init
+
+stream-upload:
+	$(call check_defined, provider, stream_path, status_path, bucket, destination, temporary_destination)
+	@stream_upload \
+		"$(provider)" "$(key)" "$(secret)" \
+		"$(stream_path)" "$(status_path)" "$(bucket)" "$(destination)" "$(temporary_destination)" \
+		"$(max_concurrent_requests)" "$(max_bandwidth)" "$(storage_class)" "$(content_disposition)" "$(region)" "$(endpoint_url)"
+.PHONY: stream-upload
+
 import:
 	$(call check_defined, source, destination)
 	import $(source) $(destination) $(delete) $(owner) $(group) $(allowed)
