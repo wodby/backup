@@ -25,7 +25,7 @@ printf 'type=%s provider=%s no_check_bucket=%s\n' \
   "${RCLONE_CONFIG_STREAM_NO_CHECK_BUCKET:-}" >> "${FAKE_RCLONE_LOG}"
 printf 'access=%s secret=%s\n' "${RCLONE_CONFIG_STREAM_ACCESS_KEY_ID:-}" "${RCLONE_CONFIG_STREAM_SECRET_ACCESS_KEY:-}" >> "${FAKE_RCLONE_LOG}"
 
-if [[ "${command}" == "moveto" ]]; then
+if [[ "${command}" == "rcat" ]]; then
   has_no_check_dest=false
   for arg in "$@"; do
     if [[ "${arg}" == "--no-check-dest" ]]; then
@@ -35,7 +35,7 @@ if [[ "${command}" == "moveto" ]]; then
   done
 
   if [[ "${RCLONE_CONFIG_STREAM_TYPE:-}" == "s3" && "${has_no_check_dest}" != "true" ]]; then
-    echo >&2 'S3 publish must skip the destination existence check'
+    echo >&2 'S3 upload must skip the destination existence check'
     exit 1
   fi
   if [[ "${RCLONE_CONFIG_STREAM_TYPE:-}" != "s3" && "${has_no_check_dest}" == "true" ]]; then
@@ -52,17 +52,22 @@ case "${command}" in
 rcat)
   target=$(remote_path "$1")
   mkdir -p "$(dirname "${target}")"
-  cat > "${target}"
-  ;;
-moveto)
-  source_path=$(remote_path "$1")
-  destination_path=$(remote_path "$2")
-  mkdir -p "$(dirname "${destination_path}")"
-  mv "${source_path}" "${destination_path}"
-  ;;
-deletefile)
-  target=$(remote_path "$1")
-  rm -f "${target}"
+  partial="${target}.uploading.$$"
+  copy_pid=""
+  cleanup_upload() {
+    if [[ -n "${copy_pid}" ]]; then
+      kill "${copy_pid}" >/dev/null 2>&1 || true
+      wait "${copy_pid}" >/dev/null 2>&1 || true
+    fi
+    rm -f "${partial}"
+  }
+  trap 'cleanup_upload; exit 143' TERM
+  trap 'cleanup_upload; exit 130' INT
+  cat <&0 > "${partial}" &
+  copy_pid=$!
+  wait "${copy_pid}"
+  copy_pid=""
+  mv "${partial}" "${target}"
   ;;
 *)
   echo >&2 "Unexpected rclone command ${command}"
@@ -96,27 +101,75 @@ run_upload() {
     provider=aws 'key=${AWS_ACCESS_KEY_ID}' 'secret=${AWS_SECRET_ACCESS_KEY}' \
     "stream_path=${stream_dir}/data" "status_path=${stream_dir}/status" \
     bucket=backups "destination=${destination}/dump.sql.gz" \
-    "temporary_destination=${destination}/dump.sql.gz.partial" \
     max_concurrent_requests=2 storage_class=STANDARD \
     'content_disposition=attachment; filename=dump.sql.gz' region=us-east-1
 }
 
 run_upload 0 success
 test "$(cat "${test_dir}/remote/backups/success/dump.sql.gz")" = 'database dump'
-test ! -e "${test_dir}/remote/backups/success/dump.sql.gz.partial"
 grep -q 'type=s3 provider=AWS' "${FAKE_RCLONE_LOG}"
 grep -q 'type=s3 provider=AWS no_check_bucket=true' "${FAKE_RCLONE_LOG}"
 grep -q 'access=expanded-access-key secret=expanded-secret-key' "${FAKE_RCLONE_LOG}"
 grep -q -- '--s3-upload-concurrency 2' "${FAKE_RCLONE_LOG}"
 grep -q -- '--s3-storage-class STANDARD' "${FAKE_RCLONE_LOG}"
-grep -q -- 'moveto .*--no-check-dest' "${FAKE_RCLONE_LOG}"
+grep -q -- 'rcat .*--no-check-dest' "${FAKE_RCLONE_LOG}"
+if grep -Eq '^(moveto|deletefile) ' "${FAKE_RCLONE_LOG}"; then
+  echo >&2 'Stream upload unexpectedly moved or deleted an object'
+  exit 1
+fi
+
+# Reaching EOF on the producer stream must not publish the final object until
+# the producer has atomically reported success.
+gated_dir="${test_dir}/gated"
+mkdir -p "${gated_dir}"
+stream_init "${gated_dir}"
+make -f "${repo_dir}/bin/actions.mk" stream-upload \
+  provider=aws key=access-key secret=secret-key \
+  "stream_path=${gated_dir}/data" "status_path=${gated_dir}/status" \
+  bucket=backups destination=gated/dump.sql.gz region=us-east-1 &
+gated_upload_pid=$!
+printf 'gated database dump' > "${gated_dir}/data"
+for _ in $(seq 1 50); do
+  if find "${test_dir}/remote/backups/gated" -name '*.uploading.*' -type f -print -quit 2>/dev/null | grep -q .; then
+    break
+  fi
+  sleep 0.1
+done
+test ! -e "${test_dir}/remote/backups/gated/dump.sql.gz"
+kill -0 "${gated_upload_pid}"
+printf '0\n' > "${gated_dir}/status.tmp"
+mv "${gated_dir}/status.tmp" "${gated_dir}/status"
+wait "${gated_upload_pid}"
+test "$(cat "${test_dir}/remote/backups/gated/dump.sql.gz")" = 'gated database dump'
 
 if run_upload 7 failure; then
   echo >&2 'Failed producer unexpectedly published an object'
   exit 1
 fi
 test ! -e "${test_dir}/remote/backups/failure/dump.sql.gz"
-test ! -e "${test_dir}/remote/backups/failure/dump.sql.gz.partial"
+test -z "$(find "${test_dir}/remote/backups/failure" -type f -print -quit)"
+
+cancel_dir="${test_dir}/cancel"
+mkdir -p "${cancel_dir}"
+stream_init "${cancel_dir}"
+stream_upload aws access-key secret-key \
+  "${cancel_dir}/data" "${cancel_dir}/status" \
+  backups cancel/dump.sql.gz "" 1 "" "" "" us-east-1 "" &
+cancel_upload_pid=$!
+printf 'canceled database dump' > "${cancel_dir}/data"
+for _ in $(seq 1 50); do
+  if find "${test_dir}/remote/backups/cancel" -name '*.uploading.*' -type f -print -quit 2>/dev/null | grep -q .; then
+    break
+  fi
+  sleep 0.1
+done
+kill -TERM "${cancel_upload_pid}"
+if wait "${cancel_upload_pid}"; then
+  echo >&2 'Canceled upload unexpectedly succeeded'
+  exit 1
+fi
+test ! -e "${test_dir}/remote/backups/cancel/dump.sql.gz"
+test -z "$(find "${test_dir}/remote/backups/cancel" -type f -print -quit)"
 
 run_provider_upload() {
   local provider=$1
@@ -136,8 +189,7 @@ run_provider_upload() {
   make -f "${repo_dir}/bin/actions.mk" stream-upload \
     "provider=${provider}" "key=${key}" "secret=${secret}" \
     "stream_path=${stream_dir}/data" "status_path=${stream_dir}/status" \
-    bucket=backups "destination=${destination}/dump" \
-    "temporary_destination=${destination}/dump.partial" "endpoint_url=${endpoint}"
+    bucket=backups "destination=${destination}/dump" "endpoint_url=${endpoint}"
   test "$(cat "${test_dir}/remote/backups/${destination}/dump")" = "${provider} stream"
 }
 

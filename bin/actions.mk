@@ -44,10 +44,10 @@ backup-and-upload:
 .PHONY: backup-and-upload
 
 backup-and-upload-stream:
-	$(call check_defined, provider, dir, bucket, destination, temporary_destination)
+	$(call check_defined, provider, dir, bucket, destination)
 	@backup_and_upload_stream \
 		"$(provider)" "$(key)" "$(secret)" \
-		"$(dir)" "$(gzip)" "$(exclude)" "$(mark)" "$(bucket)" "$(destination)" "$(temporary_destination)" \
+		"$(dir)" "$(gzip)" "$(exclude)" "$(mark)" "$(bucket)" "$(destination)" "" \
 		"$(max_concurrent_requests)" "$(max_bandwidth)" "$(storage_class)" "$(content_disposition)" "$(region)" "$(endpoint_url)"
 .PHONY: backup-and-upload-stream
 
@@ -57,10 +57,10 @@ stream-init:
 .PHONY: stream-init
 
 stream-upload:
-	$(call check_defined, provider, stream_path, status_path, bucket, destination, temporary_destination)
+	$(call check_defined, provider, stream_path, status_path, bucket, destination)
 	@stream_upload \
 		"$(provider)" "$(key)" "$(secret)" \
-		"$(stream_path)" "$(status_path)" "$(bucket)" "$(destination)" "$(temporary_destination)" \
+		"$(stream_path)" "$(status_path)" "$(bucket)" "$(destination)" "" \
 		"$(max_concurrent_requests)" "$(max_bandwidth)" "$(storage_class)" "$(content_disposition)" "$(region)" "$(endpoint_url)"
 .PHONY: stream-upload
 

@@ -38,7 +38,6 @@ cat > "${test_dir}/policy.json" <<'JSON'
       "Action": [
         "s3:GetObject",
         "s3:PutObject",
-        "s3:DeleteObject",
         "s3:AbortMultipartUpload"
       ],
       "Resource": "arn:aws:s3:::backups/*"
@@ -72,7 +71,7 @@ NGINX
 mkdir -p "${test_dir}/source"
 # Stay above rclone's streaming cutoff so this exercises the multipart path
 # used by real database and files backups rather than its small-object PUT.
-dd if=/dev/urandom of="${test_dir}/source/example.bin" bs=1M count=1 status=none
+dd if=/dev/urandom of="${test_dir}/source/example.bin" bs=1M count=6 status=none
 
 docker network create "${network}" >/dev/null
 docker run --detach --rm \
@@ -136,15 +135,43 @@ docker run --rm \
   gzip=1 \
   bucket=backups \
   destination=tests/final.tar.gz \
-  temporary_destination=tests/final.tar.gz.partial \
   region=us-east-1 \
   endpoint_url=http://s3-proxy:9000
 
 docker run --rm --network "${network}" --entrypoint /bin/sh "${mc_image}" -eu -c \
   "mc alias set local http://${server}:9000 ${root_user} ${root_password} >/dev/null
    mc stat local/backups/tests/final.tar.gz >/dev/null
-   if mc stat local/backups/tests/final.tar.gz.partial >/dev/null 2>&1; then
-     echo >&2 'Temporary backup object still exists after publish'
+   "
+
+if docker run --rm \
+  --network "${network}" \
+  --volume "${test_dir}/source:/source:ro" \
+  --entrypoint /bin/bash \
+  "${image}" -ceu \
+  'stream_dir=$(mktemp -d)
+   stream_init "${stream_dir}"
+   stream_upload backblaze "$1" "$2" \
+     "${stream_dir}/data" "${stream_dir}/status" \
+     backups tests/failed.tar.gz "" 1 "" "" "" us-east-1 "$3" &
+   upload_pid=$!
+   cat /source/example.bin > "${stream_dir}/data"
+   printf "7\n" > "${stream_dir}/status.tmp"
+   mv "${stream_dir}/status.tmp" "${stream_dir}/status"
+   wait "${upload_pid}"' \
+  -- "${backup_user}" "${backup_password}" http://s3-proxy:9000; then
+  echo >&2 'Failed producer unexpectedly completed the upload'
+  exit 1
+fi
+
+docker run --rm --network "${network}" --entrypoint /bin/sh "${mc_image}" -eu -c \
+  "mc alias set local http://${server}:9000 ${root_user} ${root_password} >/dev/null
+   if mc stat local/backups/tests/failed.tar.gz >/dev/null 2>&1; then
+     echo >&2 'Failed producer published a completed object'
+     exit 1
+   fi
+   mc ls --incomplete --recursive local/backups/tests/ > /tmp/incomplete
+   if [ -s /tmp/incomplete ]; then
+     echo >&2 'Failed producer left multipart upload parts behind'
      exit 1
    fi"
 

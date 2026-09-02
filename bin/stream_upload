@@ -9,7 +9,8 @@ stream_path=$4
 status_path=$5
 bucket=$6
 destination=$7
-temporary_destination=$8
+# Positional argument 8 is retained for compatibility with backup images and
+# callers that still pass the former temporary destination.
 max_concurrent_requests=$9
 max_bandwidth=${10}
 storage_class=${11}
@@ -18,16 +19,36 @@ region=${13}
 endpoint_url=${14}
 
 flags=(--config /dev/null)
-publish_flags=(--metadata)
-published=0
-temporary_remote=""
+relay_dir=""
+relay_path=""
+relay_writer_open=0
+upload_pid=""
 
 cleanup() {
-  if [[ "${published}" == "0" && -n "${temporary_remote}" ]]; then
-    rclone deletefile "${temporary_remote}" "${flags[@]}" >/dev/null 2>&1 || true
+  exit_code=$?
+  trap - EXIT INT TERM
+
+  # Terminate the uploader before closing its input. Closing first could make
+  # an interrupted upload look complete to the object store.
+  if [[ -n "${upload_pid}" ]]; then
+    kill "${upload_pid}" >/dev/null 2>&1 || true
+    wait "${upload_pid}" >/dev/null 2>&1 || true
   fi
+  if [[ "${relay_writer_open}" == "1" ]]; then
+    exec 10>&-
+  fi
+  if [[ -n "${relay_path}" ]]; then
+    rm -f "${relay_path}"
+  fi
+  if [[ -n "${relay_dir}" ]]; then
+    rmdir "${relay_dir}" >/dev/null 2>&1 || true
+  fi
+
+  exit "${exit_code}"
 }
 trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 if [[ -n "${max_bandwidth}" ]]; then
   flags+=(--bwlimit "${max_bandwidth}M")
@@ -159,17 +180,33 @@ if [[ "${RCLONE_CONFIG_STREAM_TYPE}" == "s3" ]]; then
   export RCLONE_CONFIG_STREAM_NO_CHECK_BUCKET=true
 
   # The destination contains the unique backup ID and cannot already exist.
-  # Avoid probing that missing object: AWS returns 403 instead of 404 when
-  # least-privilege credentials intentionally lack s3:ListBucket.
-  publish_flags+=(--no-check-dest)
+  # Avoid a pre-upload existence check. Rclone still verifies unknown-length
+  # streams with HeadObject after upload, which uses the read permission also
+  # required for restoring the resulting backup.
+  flags+=(--no-check-dest)
 fi
 
-temporary_remote="stream:${bucket}/${temporary_destination}"
 destination_remote="stream:${bucket}/${destination}"
 
-rclone rcat "${temporary_remote}" "${flags[@]}" < "${stream_path}"
+# Relay the producer FIFO through a second FIFO. Keeping the relay writer open
+# prevents rclone from completing the destination object until the producer's
+# terminal status has been checked. A failed producer instead terminates
+# rclone, which aborts an in-progress multipart or resumable upload.
+relay_dir=$(mktemp -d "${stream_path}.upload.XXXXXX")
+relay_path="${relay_dir}/data"
+mkfifo "${relay_path}"
+rclone rcat "${destination_remote}" "${flags[@]}" < "${relay_path}" &
+upload_pid=$!
+exec 10> "${relay_path}"
+relay_writer_open=1
 
-# EOF can reach the uploader just before the producer writes its atomic status.
+if ! cat "${stream_path}" >&10; then
+  echo >&2 "Backup stream relay failed"
+  exit 1
+fi
+
+# The producer writes its status as it exits; allow for the short interval
+# between its stream reaching EOF and the atomic status rename.
 for _ in $(seq 1 60); do
   if [[ -s "${status_path}" ]]; then
     break
@@ -188,5 +225,15 @@ if [[ "${producer_status}" != "0" ]]; then
   exit 1
 fi
 
-rclone moveto "${temporary_remote}" "${destination_remote}" "${publish_flags[@]}" "${flags[@]}"
-published=1
+# Only a successful producer is allowed to deliver EOF to rclone and publish
+# the final object.
+exec 10>&-
+relay_writer_open=0
+if wait "${upload_pid}"; then
+  upload_pid=""
+else
+  upload_status=$?
+  upload_pid=""
+  echo >&2 "Backup upload failed with exit code ${upload_status}"
+  exit "${upload_status}"
+fi
