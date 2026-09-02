@@ -11,7 +11,8 @@ exclude_paths=$6
 mark=$7
 bucket=$8
 destination=$9
-temporary_destination=${10}
+# Positional argument 10 is retained for compatibility with callers that
+# still pass the former temporary destination.
 max_concurrent_requests=${11}
 max_bandwidth=${12}
 storage_class=${13}
@@ -38,7 +39,7 @@ producer_pid=$!
 stream_upload \
   "${provider}" "${key}" "${secret}" \
   "${stream_dir}/data" "${stream_dir}/status" \
-  "${bucket}" "${destination}" "${temporary_destination}" \
+  "${bucket}" "${destination}" "" \
   "${max_concurrent_requests}" "${max_bandwidth}" "${storage_class}" \
   "${content_disposition}" "${region}" "${endpoint_url}"
 
