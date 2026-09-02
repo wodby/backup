@@ -44,6 +44,7 @@ buildx-push:
 
 test:
 	./test-unit.sh
+	IMAGE=$(REPO):$(TAG) ./tests/s3_restricted_permissions.sh
 	IMAGE=$(REPO):$(TAG) ./test.sh
 
 push:

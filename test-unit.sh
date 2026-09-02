@@ -25,6 +25,25 @@ printf 'type=%s provider=%s no_check_bucket=%s\n' \
   "${RCLONE_CONFIG_STREAM_NO_CHECK_BUCKET:-}" >> "${FAKE_RCLONE_LOG}"
 printf 'access=%s secret=%s\n' "${RCLONE_CONFIG_STREAM_ACCESS_KEY_ID:-}" "${RCLONE_CONFIG_STREAM_SECRET_ACCESS_KEY:-}" >> "${FAKE_RCLONE_LOG}"
 
+if [[ "${command}" == "moveto" ]]; then
+  has_no_check_dest=false
+  for arg in "$@"; do
+    if [[ "${arg}" == "--no-check-dest" ]]; then
+      has_no_check_dest=true
+      break
+    fi
+  done
+
+  if [[ "${RCLONE_CONFIG_STREAM_TYPE:-}" == "s3" && "${has_no_check_dest}" != "true" ]]; then
+    echo >&2 'S3 publish must skip the destination existence check'
+    exit 1
+  fi
+  if [[ "${RCLONE_CONFIG_STREAM_TYPE:-}" != "s3" && "${has_no_check_dest}" == "true" ]]; then
+    echo >&2 'Non-S3 publish must retain its normal destination check'
+    exit 1
+  fi
+fi
+
 remote_path() {
   printf '%s/%s' "${FAKE_RCLONE_ROOT}" "${1#*:}"
 }
@@ -90,6 +109,7 @@ grep -q 'type=s3 provider=AWS no_check_bucket=true' "${FAKE_RCLONE_LOG}"
 grep -q 'access=expanded-access-key secret=expanded-secret-key' "${FAKE_RCLONE_LOG}"
 grep -q -- '--s3-upload-concurrency 2' "${FAKE_RCLONE_LOG}"
 grep -q -- '--s3-storage-class STANDARD' "${FAKE_RCLONE_LOG}"
+grep -q -- 'moveto .*--no-check-dest' "${FAKE_RCLONE_LOG}"
 
 if run_upload 7 failure; then
   echo >&2 'Failed producer unexpectedly published an object'

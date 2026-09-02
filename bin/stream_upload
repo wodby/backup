@@ -18,6 +18,7 @@ region=${13}
 endpoint_url=${14}
 
 flags=(--config /dev/null)
+publish_flags=(--metadata)
 published=0
 temporary_remote=""
 
@@ -156,6 +157,11 @@ esac
 # usable without s3:ListBucket or s3:CreateBucket.
 if [[ "${RCLONE_CONFIG_STREAM_TYPE}" == "s3" ]]; then
   export RCLONE_CONFIG_STREAM_NO_CHECK_BUCKET=true
+
+  # The destination contains the unique backup ID and cannot already exist.
+  # Avoid probing that missing object: AWS returns 403 instead of 404 when
+  # least-privilege credentials intentionally lack s3:ListBucket.
+  publish_flags+=(--no-check-dest)
 fi
 
 temporary_remote="stream:${bucket}/${temporary_destination}"
@@ -182,5 +188,5 @@ if [[ "${producer_status}" != "0" ]]; then
   exit 1
 fi
 
-rclone moveto "${temporary_remote}" "${destination_remote}" --metadata "${flags[@]}"
+rclone moveto "${temporary_remote}" "${destination_remote}" "${publish_flags[@]}" "${flags[@]}"
 published=1
