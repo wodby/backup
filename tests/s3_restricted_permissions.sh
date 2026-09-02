@@ -35,7 +35,12 @@ cat > "${test_dir}/policy.json" <<'JSON'
     },
     {
       "Effect": "Allow",
-      "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:AbortMultipartUpload"
+      ],
       "Resource": "arn:aws:s3:::backups/*"
     }
   ]
