@@ -19,7 +19,10 @@ set -euo pipefail
 command=$1
 shift
 printf '%s %s\n' "${command}" "$*" >> "${FAKE_RCLONE_LOG}"
-printf 'type=%s provider=%s\n' "${RCLONE_CONFIG_STREAM_TYPE:-}" "${RCLONE_CONFIG_STREAM_PROVIDER:-}" >> "${FAKE_RCLONE_LOG}"
+printf 'type=%s provider=%s no_check_bucket=%s\n' \
+  "${RCLONE_CONFIG_STREAM_TYPE:-}" \
+  "${RCLONE_CONFIG_STREAM_PROVIDER:-}" \
+  "${RCLONE_CONFIG_STREAM_NO_CHECK_BUCKET:-}" >> "${FAKE_RCLONE_LOG}"
 printf 'access=%s secret=%s\n' "${RCLONE_CONFIG_STREAM_ACCESS_KEY_ID:-}" "${RCLONE_CONFIG_STREAM_SECRET_ACCESS_KEY:-}" >> "${FAKE_RCLONE_LOG}"
 
 remote_path() {
@@ -83,6 +86,7 @@ run_upload 0 success
 test "$(cat "${test_dir}/remote/backups/success/dump.sql.gz")" = 'database dump'
 test ! -e "${test_dir}/remote/backups/success/dump.sql.gz.partial"
 grep -q 'type=s3 provider=AWS' "${FAKE_RCLONE_LOG}"
+grep -q 'type=s3 provider=AWS no_check_bucket=true' "${FAKE_RCLONE_LOG}"
 grep -q 'access=expanded-access-key secret=expanded-secret-key' "${FAKE_RCLONE_LOG}"
 grep -q -- '--s3-upload-concurrency 2' "${FAKE_RCLONE_LOG}"
 grep -q -- '--s3-storage-class STANDARD' "${FAKE_RCLONE_LOG}"
@@ -126,6 +130,9 @@ run_provider_upload gcp gcp "${test_dir}/gcp-service-account.json" '' https://st
 grep -q 'type=s3 provider=DigitalOcean' "${FAKE_RCLONE_LOG}"
 grep -q 'type=s3 provider=Cloudflare' "${FAKE_RCLONE_LOG}"
 grep -q 'type=s3 provider=Other' "${FAKE_RCLONE_LOG}"
+grep -q 'type=s3 provider=DigitalOcean no_check_bucket=true' "${FAKE_RCLONE_LOG}"
+grep -q 'type=s3 provider=Cloudflare no_check_bucket=true' "${FAKE_RCLONE_LOG}"
+grep -q 'type=s3 provider=Other no_check_bucket=true' "${FAKE_RCLONE_LOG}"
 grep -q 'type=azureblob provider=' "${FAKE_RCLONE_LOG}"
 grep -q 'type=google cloud storage provider=' "${FAKE_RCLONE_LOG}"
 

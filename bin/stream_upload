@@ -150,6 +150,14 @@ case "${provider}" in
   ;;
 esac
 
+# Backup destinations are selected and validated before this uploader starts.
+# Never let rclone turn a failed bucket check into an attempt to create a
+# customer-owned bucket, which also keeps least-privilege object credentials
+# usable without s3:ListBucket or s3:CreateBucket.
+if [[ "${RCLONE_CONFIG_STREAM_TYPE}" == "s3" ]]; then
+  export RCLONE_CONFIG_STREAM_NO_CHECK_BUCKET=true
+fi
+
 temporary_remote="stream:${bucket}/${temporary_destination}"
 destination_remote="stream:${bucket}/${destination}"
 
