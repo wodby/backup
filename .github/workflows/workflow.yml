@@ -42,3 +42,18 @@ jobs:
       with:
         tags: latest
         platform: linux/amd64
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Publish GitHub Release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: bash .github/actions/github-release.sh

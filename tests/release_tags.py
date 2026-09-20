@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Check product release destinations without building or publishing images."""
 
+import json
 import os
 from pathlib import Path
 import subprocess
+import tempfile
 import unittest
 
 
@@ -61,6 +63,78 @@ class ProductReleaseTests(unittest.TestCase):
                     ["make", "--no-print-directory", "-n", "build", *args],
                     cwd=ROOT, env=ENV, text=True, capture_output=True, check=True)
                 self.assertIn("-t wodby/backup:2.3.3", result.stdout)
+
+
+class GitHubReleaseTests(unittest.TestCase):
+    def setUp(self):
+        """Use a local Git repo and a recording gh command for release metadata."""
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.repo = Path(self.directory.name)
+        self.git("init", "-q")
+        self.git("config", "user.name", "Release tests")
+        self.git("config", "user.email", "tests@example.invalid")
+        self.git("config", "commit.gpgsign", "false")
+        self.git("config", "tag.gpgsign", "false")
+        self.git("commit", "--allow-empty", "-qm", "Product change")
+        self.notes = "Refresh Backup base image\n\nwodby/alpine:latest now uses the updated digest."
+        self.git("tag", "-am", self.notes, "2.3.3")
+        self.log = self.repo / "gh.jsonl"
+        gh = self.repo / "gh"
+        gh.write_text("""#!/usr/bin/env python3
+import json, os, pathlib, sys
+args = sys.argv[1:]
+record = {"args": args}
+if "--notes-file" in args:
+    record["notes"] = pathlib.Path(args[args.index("--notes-file") + 1]).read_text()
+with open(os.environ["GH_LOG"], "a") as log:
+    log.write(json.dumps(record) + "\\n")
+if args[:2] == ["release", "view"]:
+    sys.exit(0 if os.environ.get("EXISTING_RELEASE") == "1" else 1)
+if args[:2] != ["release", "create"]:
+    sys.exit(2)
+""")
+        gh.chmod(0o755)
+
+    def git(self, *args):
+        return subprocess.run(["git", *args], cwd=self.repo, text=True,
+                              capture_output=True, check=True)
+
+    def release(self, tag="2.3.3", existing=False):
+        env = {**ENV, "PATH": str(self.repo) + os.pathsep + ENV["PATH"],
+               "GITHUB_REF": "refs/tags/" + tag, "GITHUB_REF_NAME": tag,
+               "GH_LOG": str(self.log), "EXISTING_RELEASE": "1" if existing else "0"}
+        return subprocess.run(["bash", str(ROOT / ".github/actions/github-release.sh")],
+                              cwd=self.repo, env=env, text=True, capture_output=True)
+
+    def test_title_and_notes_match_annotated_tag(self):
+        result = self.release()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        calls = [json.loads(line) for line in self.log.read_text().splitlines()]
+        self.assertEqual(len(calls), 2)
+        created = calls[1]
+        self.assertEqual(created["args"][:6],
+                         ["release", "create", "2.3.3", "--verify-tag", "--title", "2.3.3"])
+        self.assertEqual(created["notes"].strip(), self.notes)
+
+    def test_existing_release_is_preserved(self):
+        result = self.release(existing=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        calls = [json.loads(line) for line in self.log.read_text().splitlines()]
+        self.assertEqual([c["args"] for c in calls], [["release", "view", "2.3.3"]])
+
+    def test_rejects_revision_and_lightweight_tags(self):
+        self.git("tag", "-am", "Retained image revision", "r0")
+        self.git("tag", "2.3.4")
+        for tag in ("r0", "2.3.4"):
+            with self.subTest(tag=tag):
+                self.assertNotEqual(self.release(tag).returncode, 0)
+                self.assertFalse(self.log.exists())
+
+    def test_rejects_empty_release_description(self):
+        self.git("tag", "-a", "-m", "", "2.3.4")
+        self.assertNotEqual(self.release("2.3.4").returncode, 0)
+        self.assertFalse(self.log.exists())
 
 
 if __name__ == "__main__":
