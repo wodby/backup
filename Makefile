@@ -1,19 +1,23 @@
 -include env_make
 
+# Accept legacy build arguments during the image revision transition.
+BASE_IMAGE_REVISION ?= $(BASE_IMAGE_STABILITY_TAG)
+IMAGE_REVISION ?= $(STABILITY_TAG)
+
 REPO = wodby/backup
 NAME = wodby-backup
 
 ALPINE_VER ?= 3.23
 
-ifeq ($(BASE_IMAGE_STABILITY_TAG),)
+ifeq ($(BASE_IMAGE_REVISION),)
     BASE_IMAGE_TAG := $(ALPINE_VER)
 else
-    BASE_IMAGE_TAG := $(ALPINE_VER)-$(BASE_IMAGE_STABILITY_TAG)
+    BASE_IMAGE_TAG := $(ALPINE_VER)-$(BASE_IMAGE_REVISION)
 endif
 
 
-ifneq ($(STABILITY_TAG),)
-    override TAG := $(STABILITY_TAG)
+ifneq ($(IMAGE_REVISION),)
+    override TAG := $(IMAGE_REVISION)
 else
     TAG = latest
 endif
