@@ -1,4 +1,8 @@
-FROM wodby/alpine
+# check=skip=InvalidDefaultArgInFrom
+
+# The Makefile supplies the required digest-pinned BASE_IMAGE argument.
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
 
 ENV PATH="${PATH}:/usr/local/google-cloud-sdk/bin"
 
