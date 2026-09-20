@@ -11,6 +11,13 @@ if [[ "$(git cat-file -t "refs/tags/${tag}")" != tag ]]; then
     exit 1
 fi
 
+# The tag checkout must still match the commit whose image passed the build job.
+commit=$(git rev-parse "refs/tags/${tag}^{commit}")
+if [[ "${commit}" != "$(git rev-parse HEAD)" || "${commit}" != "${GITHUB_SHA:-${commit}}" ]]; then
+    echo >&2 "Release tag does not match the built commit"
+    exit 1
+fi
+
 # Use the annotated tag's release description, excluding any signing material.
 notes=$(mktemp)
 trap 'rm -f "${notes}"' EXIT
