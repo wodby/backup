@@ -1,9 +1,6 @@
 name: Build
-description: Build mkdocs image
+description: Build backup image
 inputs:
-  version:
-    description: version
-    required: true
   tags:
     description: image tags
     required: true
