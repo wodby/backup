@@ -1,8 +1,9 @@
 -include env_make
 
-# Accept legacy build arguments during the image revision transition.
+# Keep legacy build arguments compatible; RELEASE_VERSION selects the product tag.
 BASE_IMAGE_REVISION ?= $(BASE_IMAGE_STABILITY_TAG)
 IMAGE_REVISION ?= $(STABILITY_TAG)
+RELEASE_VERSION ?= $(IMAGE_REVISION)
 
 REPO = wodby/backup
 NAME = wodby-backup
@@ -16,8 +17,8 @@ else
 endif
 
 
-ifneq ($(IMAGE_REVISION),)
-    override TAG := $(IMAGE_REVISION)
+ifneq ($(RELEASE_VERSION),)
+    override TAG := $(RELEASE_VERSION)
 else
     TAG = latest
 endif

@@ -6,10 +6,14 @@
 
 ## Docker Images
 
-Use image revision tags such as `wodby/backup:rN` to select a Wodby image revision.
-Image revisions start at `r0` and increase with each release.
-See [release tags](https://github.com/wodby/backup/tags) for available revisions and the [image revision policy](https://github.com/wodby/images#image-revisions) for upgrade guidance.
-Previously published image tags remain available.
+Backup is Wodby software with its own semantic product versions. Use matching
+Git and Docker tags such as `wodby/backup:X.Y.Z` to select a release.
+Patch releases contain compatible fixes, minor releases add compatible features,
+and major releases introduce incompatible changes.
+
+The previously published `r0` tag remains available. Future releases continue the
+existing 2.x version series. See [release tags](https://github.com/wodby/backup/tags)
+for available versions. `latest` follows the default branch.
 
 Overview:
 

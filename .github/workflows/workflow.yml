@@ -6,7 +6,9 @@ on:
     - master
 
     tags:
-    - '*'
+    - '[0-9]+.[0-9]+.[0-9]+'
+
+  pull_request:
 
 env:
   BASE_IMAGE_REVISION: 2.19.4
@@ -14,7 +16,15 @@ env:
   DEBUG: true
 
 jobs:
+  release-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Check product release tags
+      run: python3 tests/release_tags.py
   build:
+    if: github.event_name == 'push'
+    needs: release-tests
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
