@@ -25,6 +25,11 @@ Supported tags and respective `Dockerfile` links:
 
 * `latest` [_(Dockerfile)_](https://github.com/wodby/backup/tree/master/Dockerfile)
 
+The [image updater](https://github.com/wodby/images) checks the Alpine base daily.
+When its digest changes, Backup gets a new patch release. The image is built and
+tested before its Docker tag is published; the GitHub Release is created after
+publication succeeds. Image revisions such as `rN` are not used for Backup.
+
 ## Actions
 
 Usage:
