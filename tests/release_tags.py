@@ -11,7 +11,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 ENV = {key: value for key, value in os.environ.items() if key not in (
-    "RELEASE_VERSION", "IMAGE_REVISION", "STABILITY_TAG", "TAG", "MAKEFLAGS", "MFLAGS")}
+    "RELEASE_VERSION", "IMAGE_REVISION", "STABILITY_TAG", "TAG", "MAKEFLAGS", "MFLAGS", "GITHUB_SHA")}
 ENV.update(DOCKER_USERNAME="test", DOCKER_PASSWORD="test", TAGS="latest")
 WRAPPER = r'''
 docker() {
@@ -100,9 +100,10 @@ if args[:2] != ["release", "create"]:
         return subprocess.run(["git", *args], cwd=self.repo, text=True,
                               capture_output=True, check=True)
 
-    def release(self, tag="2.3.3", existing=False):
+    def release(self, tag="2.3.3", existing=False, commit=None):
         env = {**ENV, "PATH": str(self.repo) + os.pathsep + ENV["PATH"],
                "GITHUB_REF": "refs/tags/" + tag, "GITHUB_REF_NAME": tag,
+               "GITHUB_SHA": commit or self.git("rev-parse", "HEAD").stdout.strip(),
                "GH_LOG": str(self.log), "EXISTING_RELEASE": "1" if existing else "0"}
         return subprocess.run(["bash", str(ROOT / ".github/actions/github-release.sh")],
                               cwd=self.repo, env=env, text=True, capture_output=True)
@@ -130,6 +131,22 @@ if args[:2] != ["release", "create"]:
             with self.subTest(tag=tag):
                 self.assertNotEqual(self.release(tag).returncode, 0)
                 self.assertFalse(self.log.exists())
+
+    def test_rejects_tag_from_a_different_checkout(self):
+        self.git("commit", "--allow-empty", "-qm", "Another change")
+        result = self.release()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("does not match the built commit", result.stderr)
+        self.assertFalse(self.log.exists())
+
+    def test_rejects_tag_moved_since_the_build(self):
+        built = self.git("rev-parse", "HEAD").stdout.strip()
+        self.git("commit", "--allow-empty", "-qm", "Another change")
+        self.git("tag", "-fa", "2.3.3", "-m", self.notes)
+        result = self.release(commit=built)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("does not match the built commit", result.stderr)
+        self.assertFalse(self.log.exists())
 
     def test_rejects_empty_release_description(self):
         self.git("tag", "-a", "-m", "", "2.3.4")
