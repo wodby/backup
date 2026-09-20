@@ -7,7 +7,7 @@
 ## Docker Images
 
 Use image revision tags such as `wodby/backup:rN` to select a Wodby image revision.
-The `rN` suffix identifies the image revision separately from the upstream software version.
+Image revisions start at `r0` and increase with each release.
 See [release tags](https://github.com/wodby/backup/tags) for available revisions and the [image revision policy](https://github.com/wodby/images#image-revisions) for upgrade guidance.
 Previously published image tags remain available.
 
