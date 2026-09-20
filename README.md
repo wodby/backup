@@ -9,7 +9,7 @@
 Use image revision tags such as `wodby/backup:rN` to select a Wodby image revision.
 The `rN` suffix identifies the image revision separately from the upstream software version.
 See [release tags](https://github.com/wodby/backup/tags) for available revisions and the [image revision policy](https://github.com/wodby/images#image-revisions) for upgrade guidance.
-Existing SemVer image tags remain available.
+Previously published image tags remain available.
 
 Overview:
 
