@@ -3,6 +3,7 @@
 
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import tempfile
@@ -11,8 +12,16 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 ENV = {key: value for key, value in os.environ.items() if key not in (
-    "RELEASE_VERSION", "IMAGE_REVISION", "STABILITY_TAG", "TAG", "MAKEFLAGS", "MFLAGS", "GITHUB_SHA")}
-ENV.update(DOCKER_USERNAME="test", DOCKER_PASSWORD="test", TAGS="latest")
+    "RELEASE_VERSION", "IMAGE_REVISION", "STABILITY_TAG", "TAG", "MAKEFLAGS", "MFLAGS", "GITHUB_SHA",
+    "BASE_IMAGE_REVISION", "BASE_IMAGE_STABILITY_TAG", "ALPINE_VER")}
+PARENT_REVISION = re.search(r"^  BASE_IMAGE_REVISION: (r[0-9]+)$",
+                            (ROOT / ".github/workflows/workflow.yml").read_text(), re.M)[1]
+PINS = dict(re.findall(r"^BASE_IMAGE_DIGEST_(\S+) := (sha256:[a-f0-9]{64})$",
+                       (ROOT / "base-images.mk").read_text(), re.M))
+PARENT_REF = f"wodby/alpine:3-{PARENT_REVISION}@{PINS['3-' + PARENT_REVISION]}"
+FLOATING_REF = f"wodby/alpine:3@{PINS['3']}"
+ENV.update(DOCKER_USERNAME="test", DOCKER_PASSWORD="test", TAGS="latest",
+           BASE_IMAGE_REVISION=PARENT_REVISION, ALPINE_VER="3")
 WRAPPER = r'''
 docker() {
     if [[ "$1" == login ]]; then cat >/dev/null; echo "docker login"; else return 1; fi
@@ -33,11 +42,13 @@ class ProductReleaseTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("--push -t wodby/backup:2.3.3", result.stdout)
         self.assertNotIn("wodby/backup:latest", result.stdout)
+        self.assertIn(PARENT_REF, result.stdout)
 
     def test_default_branch_publishes_latest(self):
         result = self.publish("refs/heads/master")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("--push -t wodby/backup:latest", result.stdout)
+        self.assertIn(FLOATING_REF, result.stdout)
 
     def test_non_product_tags_are_rejected(self):
         for tag in ("r0", "r1", "r23", "2.3.3-rc1", "2.3.3.1", "02.3.3", "v2.3.3"):
@@ -65,6 +76,31 @@ class ProductReleaseTests(unittest.TestCase):
                 self.assertIn("-t wodby/backup:2.3.3", result.stdout)
 
 
+    def test_all_release_build_targets_use_the_published_parent(self):
+        for target in ("build", "buildx-build-amd64", "buildx-build", "buildx-push"):
+            with self.subTest(target=target):
+                result = subprocess.run(["make", "--no-print-directory", "-n", target],
+                                        cwd=ROOT, env={**ENV, "RELEASE_VERSION": "2.3.6"},
+                                        text=True, capture_output=True, check=True)
+                self.assertIn(PARENT_REF, result.stdout)
+                self.assertIn("wodby/backup:2.3.6", result.stdout)
+                self.assertNotIn(FLOATING_REF, result.stdout)
+
+    def test_product_build_requires_a_reviewed_parent(self):
+        for revision in ("", "r999999999"):
+            with self.subTest(revision=revision):
+                result = subprocess.run(["make", "--no-print-directory", "-n", "build"],
+                                        cwd=ROOT, env={**ENV, "RELEASE_VERSION": "2.3.6",
+                                                       "BASE_IMAGE_REVISION": revision},
+                                        text=True, capture_output=True)
+                self.assertNotEqual(result.returncode, 0)
+
+    def test_ci_selects_product_version_before_building_and_testing(self):
+        action = (ROOT / ".github/actions/action.yml").read_text()
+        self.assertIn("RELEASE_VERSION: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}", action)
+        self.assertLess(action.index("RELEASE_VERSION:"), action.index("make buildx-build-amd64"))
+
+
 class GitHubReleaseTests(unittest.TestCase):
     def setUp(self):
         """Use a local Git repo and a recording gh command for release metadata."""
@@ -77,7 +113,7 @@ class GitHubReleaseTests(unittest.TestCase):
         self.git("config", "commit.gpgsign", "false")
         self.git("config", "tag.gpgsign", "false")
         self.git("commit", "--allow-empty", "-qm", "Product change")
-        self.notes = "Refresh Backup base image\n\nwodby/alpine:latest now uses the updated digest."
+        self.notes = "Update Alpine base image to 3-r1\n\nUpgrade zlib to fix a CVE."
         self.git("tag", "-am", self.notes, "2.3.3")
         self.log = self.repo / "gh.jsonl"
         gh = self.repo / "gh"

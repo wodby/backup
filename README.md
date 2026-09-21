@@ -26,9 +26,11 @@ Supported tags and respective `Dockerfile` links:
 * `latest` [_(Dockerfile)_](https://github.com/wodby/backup/tree/master/Dockerfile)
 
 The [image updater](https://github.com/wodby/images) checks the Alpine base daily.
-When its digest changes, Backup gets a new patch release. The image is built and
-tested before its Docker tag is published; the GitHub Release is created after
-publication succeeds. Image revisions such as `rN` are not used for Backup.
+A new published `wodby/alpine:3-rN` revision produces a Backup patch release,
+including revisions with package security fixes. Its release notes describe the
+parent changes. Digest-only changes rebuild `latest` without creating a product
+release. The release image is tested against the exact pinned parent before its
+Docker tag and GitHub Release are published. Backup keeps its own product versions.
 
 ## Actions
 
@@ -66,7 +68,9 @@ Notes:
 
 Build with the Makefile to use the base image digests in `base-images.mk`. Local
 builds and CI resolve the same version and variant to the same multi-platform
-image. A version without a pin fails before the build starts.
+image. Floating builds use the pinned `wodby/alpine:3` image. To build a product
+release, set `RELEASE_VERSION` and `BASE_IMAGE_REVISION`; the latter selects a
+reviewed `3-rN` pin. Missing parent revisions or pins fail before the build starts.
 
 When adding a supported base version or variant, add its image index digest to
 `base-images.mk`. For a custom build, override `BASE_IMAGE` with a complete

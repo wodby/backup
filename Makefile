@@ -8,11 +8,14 @@ RELEASE_VERSION ?= $(IMAGE_REVISION)
 REPO = wodby/backup
 NAME = wodby-backup
 
-ALPINE_VER ?= 3.23
+ALPINE_VER ?= 3
 
-ifeq ($(BASE_IMAGE_REVISION),)
-    BASE_IMAGE_TAG := $(ALPINE_VER)
-else
+# Floating builds follow Alpine's major line; product builds use its published revision.
+BASE_IMAGE_TAG := $(ALPINE_VER)
+ifneq ($(RELEASE_VERSION),)
+    ifeq ($(BASE_IMAGE_REVISION),)
+        $(error Product releases require BASE_IMAGE_REVISION)
+    endif
     BASE_IMAGE_TAG := $(ALPINE_VER)-$(BASE_IMAGE_REVISION)
 endif
 
@@ -29,7 +32,6 @@ PLATFORM ?= linux/amd64
 
 # Resolve the same pinned base image for every local and CI build target.
 include base-images.mk
-BASE_IMAGE_TAG = latest
 
 default: build
 
