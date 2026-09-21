@@ -11,7 +11,8 @@ on:
   pull_request:
 
 env:
-  BASE_IMAGE_REVISION: 2.19.4
+  ALPINE_VER: '3'
+  BASE_IMAGE_REVISION: r0
   AWS_REGION: us-east-1
   DEBUG: true
 

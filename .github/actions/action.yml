@@ -15,6 +15,7 @@ runs:
     env:
       TAGS: ${{ inputs.tags }}
       PLATFORM: ${{ inputs.platform }}
+      RELEASE_VERSION: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
     run: |
       set -e
       tests/credential_safety.sh
