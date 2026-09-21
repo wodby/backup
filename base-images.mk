@@ -3,7 +3,7 @@
 BASE_IMAGE_REPOSITORY := wodby/alpine
 BASE_IMAGE_VERSION_SUFFIX :=
 
-BASE_IMAGE_DIGEST_latest := sha256:93b0e40910eb242dbd3964fc41a84d5ebc635b414796c98843ff4da07bbb9eb0
+BASE_IMAGE_DIGEST_latest := sha256:49b9d0fda642ffb688ed9f46fbd2b70bbcbd59e6dfd1d9eac3bcde782b77488e
 
 # Fail before building when a version or variant has no reviewed pin.
 BASE_IMAGE = $(BASE_IMAGE_REPOSITORY):$(BASE_IMAGE_TAG)@$(or $(BASE_IMAGE_DIGEST_$(BASE_IMAGE_TAG)),$(error No base image digest for $(BASE_IMAGE_REPOSITORY):$(BASE_IMAGE_TAG); update base-images.mk))
