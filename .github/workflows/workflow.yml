@@ -12,7 +12,7 @@ on:
 
 env:
   ALPINE_VER: '3'
-  BASE_IMAGE_REVISION: r0
+  BASE_IMAGE_REVISION: r1
   AWS_REGION: us-east-1
   DEBUG: true
 
