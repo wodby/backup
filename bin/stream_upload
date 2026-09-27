@@ -179,6 +179,11 @@ esac
 if [[ "${RCLONE_CONFIG_STREAM_TYPE}" == "s3" ]]; then
   export RCLONE_CONFIG_STREAM_NO_CHECK_BUCKET=true
 
+  # Unknown-length streams cannot auto-size S3 parts. Use 64 MiB so the
+  # 10,000-part limit permits 625 GiB instead of the 5 MiB default's 48.8 GiB.
+  # Preserve explicit overrides for larger archives or tighter memory budgets.
+  export RCLONE_S3_CHUNK_SIZE="${RCLONE_S3_CHUNK_SIZE:-64Mi}"
+
   # The destination contains the unique backup ID and cannot already exist.
   # Avoid a pre-upload existence check. Rclone still verifies unknown-length
   # streams with HeadObject after upload, which uses the read permission also

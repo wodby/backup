@@ -10,6 +10,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# Keep the default and override cases independent of the caller's environment.
+unset RCLONE_S3_CHUNK_SIZE RCLONE_CONFIG_STREAM_CHUNK_SIZE EXPECTED_S3_CHUNK_SIZE
+
 mkdir -p "${test_dir}/bin" "${test_dir}/remote"
 
 cat > "${test_dir}/bin/rclone" <<'SCRIPT'
@@ -26,6 +29,15 @@ printf 'type=%s provider=%s no_check_bucket=%s\n' \
 printf 'access=%s secret=%s\n' "${RCLONE_CONFIG_STREAM_ACCESS_KEY_ID:-}" "${RCLONE_CONFIG_STREAM_SECRET_ACCESS_KEY:-}" >> "${FAKE_RCLONE_LOG}"
 
 if [[ "${command}" == "rcat" ]]; then
+  if [[ "${RCLONE_CONFIG_STREAM_TYPE:-}" == "s3" ]]; then
+    if [[ "${RCLONE_S3_CHUNK_SIZE:-}" != "${EXPECTED_S3_CHUNK_SIZE:-64Mi}" ]]; then
+      echo >&2 'S3 stream has an unexpected multipart chunk size'
+      exit 1
+    fi
+  elif [[ -n "${RCLONE_S3_CHUNK_SIZE:-}" ]]; then
+    echo >&2 'Non-S3 upload unexpectedly configured S3 chunk sizing'
+    exit 1
+  fi
   has_no_check_dest=false
   for arg in "$@"; do
     if [[ "${arg}" == "--no-check-dest" ]]; then
@@ -215,5 +227,14 @@ backup_and_upload_stream aws access-key secret-key \
   2 '' STANDARD 'attachment; filename="archive.tar.gz"' us-east-1 ''
 tar -xOzf "${test_dir}/remote/backups/files/archive.tar.gz" ./example.txt | grep -q '^file backup$'
 test ! -e "${test_dir}/remote/backups/files/archive.tar.gz.partial"
+
+# Explicit chunk sizing must reach both database and file streaming uploads.
+export RCLONE_S3_CHUNK_SIZE=128Mi EXPECTED_S3_CHUNK_SIZE=128Mi
+run_upload 0 custom-chunks
+test "$(cat "${test_dir}/remote/backups/custom-chunks/dump.sql.gz")" = 'database dump'
+backup_and_upload_stream aws access-key secret-key \
+  "${test_dir}/source" 1 '' '' backups custom-files/archive.tar.gz '' \
+  1 '' STANDARD '' us-east-1 ''
+tar -xOzf "${test_dir}/remote/backups/custom-files/archive.tar.gz" ./example.txt | grep -q '^file backup$'
 
 printf 'stream upload unit tests passed\n'

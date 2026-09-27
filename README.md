@@ -64,6 +64,21 @@ Notes:
 * S3 uploads use AWS CLI `path` addressing style for broader compatibility
 ```
 
+## Streaming backups to S3
+
+`backup-and-upload-stream` and `stream-upload` use 64 MiB multipart chunks for
+AWS S3, DigitalOcean Spaces, Cloudflare R2, and Backblaze B2. With S3's
+10,000-part limit, this permits streams up to 625 GiB, subject to the storage
+provider's own limits. Unknown-length streams cannot automatically increase
+their chunk size.
+
+For larger archives, set the container environment variable
+`RCLONE_S3_CHUNK_SIZE`, for example `128Mi` for a 1,250 GiB multipart ceiling.
+Choose a chunk size with headroom for archive growth. Upload buffering uses
+approximately the chunk size multiplied by `max_concurrent_requests` (default
+one), in addition to the backup process's other memory needs. Retrying an upload
+that exhausted its parts requires increasing the chunk size first.
+
 ## Building with pinned base images
 
 Build with the Makefile to use the base image digests in `base-images.mk`. Local
