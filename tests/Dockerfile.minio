@@ -1,0 +1,13 @@
+# MinIO's community images are no longer available. Build the same test
+# releases from immutable upstream commits instead of pulling retired images.
+FROM golang:1.24.2-alpine@sha256:7772cb5322baa875edd74705556d08f0eeca7b9c4b5367754ce3f2f00041ccee AS build
+
+ENV CGO_ENABLED=0
+# minio RELEASE.2025-04-22T22-12-26Z
+RUN go install github.com/minio/minio@0d7408fc9969caf07de6a8c3a84f9fbb10a6739e
+# mc RELEASE.2025-04-16T18-13-26Z
+RUN go install github.com/minio/mc@b00526b153a31b36767991a4f5ce2cced435ee8e
+
+FROM alpine:3.22@sha256:5291449c3df73caf6ed85e649dec1b9e818b39a5d8c871e97afc13e9cd5e8fa8
+COPY --from=build /go/bin/minio /go/bin/mc /usr/local/bin/
+ENTRYPOINT ["minio"]

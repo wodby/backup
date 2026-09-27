@@ -3,13 +3,13 @@
 set -euo pipefail
 
 image=${IMAGE:?IMAGE must name the backup image under test}
+repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 test_dir=$(mktemp -d)
 suffix="${RANDOM}-$$"
 network="wodby-backup-s3-${suffix}"
 server="wodby-backup-minio-${suffix}"
 proxy="wodby-backup-s3-proxy-${suffix}"
-minio_image=quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
-mc_image=quay.io/minio/mc:RELEASE.2025-04-16T18-13-26Z
+minio_image="wodby-backup-s3-test:${suffix}"
 nginx_image=nginx:1.28-alpine
 root_user=minio-root
 root_password=minio-root-password
@@ -20,9 +20,14 @@ cleanup() {
   docker rm -f "${proxy}" >/dev/null 2>&1 || true
   docker rm -f "${server}" >/dev/null 2>&1 || true
   docker network rm "${network}" >/dev/null 2>&1 || true
+  docker image rm "${minio_image}" >/dev/null 2>&1 || true
   rm -rf "${test_dir}"
 }
 trap cleanup EXIT
+
+# Keep the test independent of MinIO's discontinued prebuilt distribution.
+# Docker retains the build cache; only this run's image tag is removed afterward.
+docker build --tag "${minio_image}" --file "${repo_dir}/tests/Dockerfile.minio" "${repo_dir}/tests"
 
 cat > "${test_dir}/policy.json" <<'JSON'
 {
@@ -69,9 +74,9 @@ http {
 NGINX
 
 mkdir -p "${test_dir}/source"
-# Stay above rclone's streaming cutoff so this exercises the multipart path
-# used by real database and files backups rather than its small-object PUT.
-dd if=/dev/urandom of="${test_dir}/source/example.bin" bs=1M count=6 status=none
+# Cross the default 64 MiB part size so both success and producer failure
+# exercise multipart uploads rather than only buffering the stream in memory.
+dd if=/dev/urandom of="${test_dir}/source/example.bin" bs=1M count=130 status=none
 
 docker network create "${network}" >/dev/null
 docker run --detach --rm \
@@ -85,7 +90,7 @@ docker run --detach --rm \
 
 ready=false
 for _ in $(seq 1 30); do
-  if docker run --rm --network "${network}" "${mc_image}" \
+  if docker run --rm --network "${network}" --entrypoint mc "${minio_image}" \
     alias set local "http://${server}:9000" "${root_user}" "${root_password}" >/dev/null 2>&1; then
     ready=true
     break
@@ -101,7 +106,7 @@ docker run --rm \
   --network "${network}" \
   --volume "${test_dir}/policy.json:/policy.json:ro" \
   --entrypoint /bin/sh \
-  "${mc_image}" -eu -c \
+  "${minio_image}" -eu -c \
   "mc alias set local http://${server}:9000 ${root_user} ${root_password} >/dev/null
    mc mb local/backups >/dev/null
    mc admin user add local ${backup_user} ${backup_password} >/dev/null
@@ -110,7 +115,7 @@ docker run --rm \
 
 # This user deliberately has no s3:ListBucket permission. It models manually
 # selected buckets whose credentials can operate only on exact object keys.
-if docker run --rm --network "${network}" --entrypoint /bin/sh "${mc_image}" -eu -c \
+if docker run --rm --network "${network}" --entrypoint /bin/sh "${minio_image}" -eu -c \
   "mc alias set restricted http://${server}:9000 ${backup_user} ${backup_password} >/dev/null
    mc ls restricted/backups" >/dev/null 2>&1; then
   echo >&2 'Restricted backup user unexpectedly listed the bucket'
@@ -138,7 +143,7 @@ docker run --rm \
   region=us-east-1 \
   endpoint_url=http://s3-proxy:9000
 
-docker run --rm --network "${network}" --entrypoint /bin/sh "${mc_image}" -eu -c \
+docker run --rm --network "${network}" --entrypoint /bin/sh "${minio_image}" -eu -c \
   "mc alias set local http://${server}:9000 ${root_user} ${root_password} >/dev/null
    mc stat local/backups/tests/final.tar.gz >/dev/null
    "
@@ -163,7 +168,7 @@ if docker run --rm \
   exit 1
 fi
 
-docker run --rm --network "${network}" --entrypoint /bin/sh "${mc_image}" -eu -c \
+docker run --rm --network "${network}" --entrypoint /bin/sh "${minio_image}" -eu -c \
   "mc alias set local http://${server}:9000 ${root_user} ${root_password} >/dev/null
    if mc stat local/backups/tests/failed.tar.gz >/dev/null 2>&1; then
      echo >&2 'Failed producer published a completed object'
