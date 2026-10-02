@@ -4,6 +4,8 @@ set -e
 
 aws_bucket=wodby-mirroring-testing
 gcp_bucket=wodby-backup-tests
+# Uniform bucket-level access, which Google Cloud uses by default for new buckets, rejects object ACLs.
+gcp_uniform_bucket=wodby-backup-tests-uniform
 azure_container=${AZURE_BLOB_CONTAINER:-}
 archive_path=/mnt/backup-$RANDOM.tar
 archive_path_zip=/mnt/backup-$RANDOM.tar.gz
@@ -54,6 +56,12 @@ docker run --rm -v "${tmp_dir}":/mnt -e DEBUG -e AWS_ACCESS_KEY_ID -e AWS_SECRET
 docker run --rm -v "${tmp_dir}":/mnt -e DEBUG -e GCP_SA "${IMAGE}" make backup-and-upload dir=/usr/include \
   provider="gcp" \
   bucket="${gcp_bucket}" destination="${destination}" storage_class="NEARLINE"
+
+# Streamed uploads read the service account key from a file, as backup jobs mount it.
+for bucket in "${gcp_bucket}" "${gcp_uniform_bucket}"; do
+  docker run --rm -e DEBUG -e GCP_SA -e BUCKET="${bucket}" -e DESTINATION="stream-$RANDOM.tar" "${IMAGE}" sh -c \
+    'printf "%s" "${GCP_SA}" | base64 -d > /tmp/gcp-sa.json && make -f /usr/local/bin/actions.mk backup-and-upload-stream dir=/usr/include provider=gcp key=/tmp/gcp-sa.json bucket="${BUCKET}" destination="${DESTINATION}"'
+done
 
 if [[ -n "${AZURE_STORAGE_ACCOUNT:-}" && -n "${AZURE_STORAGE_KEY:-}" && -n "${azure_container}" ]]; then
   docker run --rm -v "${tmp_dir}":/mnt -e DEBUG -e AZURE_STORAGE_ACCOUNT -e AZURE_STORAGE_KEY -e AZURE_STORAGE_ENDPOINT "${IMAGE}" make backup-and-upload dir=/usr/include \
