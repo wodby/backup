@@ -143,6 +143,10 @@ case "${provider}" in
   fi
   export RCLONE_CONFIG_STREAM_TYPE="google cloud storage"
   export RCLONE_CONFIG_STREAM_SERVICE_ACCOUNT_FILE="${key}"
+  # Buckets with uniform bucket-level access reject object ACLs, and rclone sets
+  # its default "private" ACL on every upload unless told not to. Without ACLs,
+  # objects in buckets with fine-grained access get the bucket's default ACL.
+  export RCLONE_CONFIG_STREAM_BUCKET_POLICY_ONLY=true
   if [[ -n "${storage_class}" ]]; then
     flags+=(--gcs-storage-class "${storage_class}")
   fi
