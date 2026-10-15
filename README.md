@@ -67,8 +67,8 @@ Notes:
 ## Streaming backups to S3
 
 `backup-and-upload-stream` and `stream-upload` use 64 MiB multipart chunks for
-AWS S3, DigitalOcean Spaces, Cloudflare R2, and Backblaze B2. With S3's
-10,000-part limit, this permits streams up to 625 GiB, subject to the storage
+AWS S3, DigitalOcean Spaces, Cloudflare R2, Backblaze B2, and Wasabi. With
+S3's 10,000-part limit, this permits streams up to 625 GiB, subject to the storage
 provider's own limits. Unknown-length streams cannot automatically increase
 their chunk size.
 

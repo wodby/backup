@@ -136,6 +136,25 @@ case "${provider}" in
     flags+=(--s3-upload-concurrency "${max_concurrent_requests}")
   fi
   ;;
+"wasabi")
+  if [[ -z "${secret}" ]]; then
+    echo >&2 "Missing Wasabi secret key"
+    exit 1
+  fi
+  if [[ -z "${endpoint_url}" ]]; then
+    echo >&2 "Missing Wasabi service URL"
+    exit 1
+  fi
+  export RCLONE_CONFIG_STREAM_TYPE=s3
+  export RCLONE_CONFIG_STREAM_PROVIDER=Wasabi
+  export RCLONE_CONFIG_STREAM_ACCESS_KEY_ID="${key}"
+  export RCLONE_CONFIG_STREAM_SECRET_ACCESS_KEY="${secret}"
+  export RCLONE_CONFIG_STREAM_REGION="${region}"
+  export RCLONE_CONFIG_STREAM_ENDPOINT="${endpoint_url}"
+  if [[ -n "${max_concurrent_requests}" ]]; then
+    flags+=(--s3-upload-concurrency "${max_concurrent_requests}")
+  fi
+  ;;
 "gcp")
   if [[ ! -f "${key}" ]]; then
     echo >&2 "Google service account file does not exist"
