@@ -26,6 +26,9 @@ printf 'type=%s provider=%s no_check_bucket=%s\n' \
   "${RCLONE_CONFIG_STREAM_TYPE:-}" \
   "${RCLONE_CONFIG_STREAM_PROVIDER:-}" \
   "${RCLONE_CONFIG_STREAM_NO_CHECK_BUCKET:-}" >> "${FAKE_RCLONE_LOG}"
+if [[ -n "${RCLONE_CONFIG_STREAM_FORCE_PATH_STYLE:-}" ]]; then
+  printf 'path_style=%s\n' "${RCLONE_CONFIG_STREAM_FORCE_PATH_STYLE}" >> "${FAKE_RCLONE_LOG}"
+fi
 printf 'access=%s secret=%s\n' "${RCLONE_CONFIG_STREAM_ACCESS_KEY_ID:-}" "${RCLONE_CONFIG_STREAM_SECRET_ACCESS_KEY:-}" >> "${FAKE_RCLONE_LOG}"
 
 if [[ "${command}" == "rcat" ]]; then
@@ -210,6 +213,7 @@ run_provider_upload digitalocean digitalocean access-key secret-key https://fra1
 run_provider_upload cloudflare cloudflare access-key secret-key https://account.r2.cloudflarestorage.com
 run_provider_upload backblaze backblaze application-key-id application-key https://s3.us-west-004.backblazeb2.com
 run_provider_upload wasabi wasabi access-key secret-key https://s3.eu-central-2.wasabisys.com
+run_provider_upload s3-compatible s3-compatible access-key secret-key https://s3.example.com
 run_provider_upload azure azure storage-account storage-key https://storage-account.blob.core.windows.net
 run_provider_upload gcp gcp "${test_dir}/gcp-service-account.json" '' https://storage.googleapis.com
 grep -q 'type=s3 provider=DigitalOcean' "${FAKE_RCLONE_LOG}"
@@ -219,6 +223,7 @@ grep -q 'type=s3 provider=DigitalOcean no_check_bucket=true' "${FAKE_RCLONE_LOG}
 grep -q 'type=s3 provider=Cloudflare no_check_bucket=true' "${FAKE_RCLONE_LOG}"
 grep -q 'type=s3 provider=Other no_check_bucket=true' "${FAKE_RCLONE_LOG}"
 grep -q 'type=s3 provider=Wasabi no_check_bucket=true' "${FAKE_RCLONE_LOG}"
+grep -q 'path_style=true' "${FAKE_RCLONE_LOG}"
 grep -q 'type=azureblob provider=' "${FAKE_RCLONE_LOG}"
 grep -q 'type=google cloud storage provider=' "${FAKE_RCLONE_LOG}"
 

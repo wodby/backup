@@ -136,6 +136,27 @@ case "${provider}" in
     flags+=(--s3-upload-concurrency "${max_concurrent_requests}")
   fi
   ;;
+"s3-compatible")
+  if [[ -z "${secret}" ]]; then
+    echo >&2 "Missing S3 secret access key"
+    exit 1
+  fi
+  if [[ -z "${endpoint_url}" ]]; then
+    echo >&2 "Missing S3 endpoint URL"
+    exit 1
+  fi
+  export RCLONE_CONFIG_STREAM_TYPE=s3
+  export RCLONE_CONFIG_STREAM_PROVIDER=Other
+  # Generic S3 servers such as MinIO and Ceph do not serve bucket subdomains.
+  export RCLONE_CONFIG_STREAM_FORCE_PATH_STYLE=true
+  export RCLONE_CONFIG_STREAM_ACCESS_KEY_ID="${key}"
+  export RCLONE_CONFIG_STREAM_SECRET_ACCESS_KEY="${secret}"
+  export RCLONE_CONFIG_STREAM_REGION="${region}"
+  export RCLONE_CONFIG_STREAM_ENDPOINT="${endpoint_url}"
+  if [[ -n "${max_concurrent_requests}" ]]; then
+    flags+=(--s3-upload-concurrency "${max_concurrent_requests}")
+  fi
+  ;;
 "wasabi")
   if [[ -z "${secret}" ]]; then
     echo >&2 "Missing Wasabi secret key"
