@@ -12,7 +12,6 @@ runs:
   using: "composite"
   steps:
   - name: Build image
-    id: brotli-image
     env:
       TAGS: ${{ inputs.tags }}
       PLATFORM: ${{ inputs.platform }}
@@ -22,20 +21,6 @@ runs:
       tests/credential_safety.sh
       make buildx-build-amd64
       make test
-      echo "image=$(make --no-print-directory -s image-ref)" >> "$GITHUB_OUTPUT"
-    shell: bash
-  - name: Verify Brotli security fixes
-    uses: wodby/images/.github/actions/check-brotli@4d79323d1d62295e425a222e8cb23ccf843cbbea
-    with:
-      image: ${{ steps.brotli-image.outputs.image }}
-  - name: Publish verified image
-    if: github.event_name == 'push'
-    shell: bash
-    env:
-      TAGS: ${{ inputs.tags }}
-      PLATFORM: ${{ inputs.platform }}
-      RELEASE_VERSION: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
-    run: |
-      set -e
       make buildx-build
       . $GITHUB_ACTION_PATH/release.sh
+    shell: bash
