@@ -6,6 +6,9 @@ FROM ${BASE_IMAGE}
 
 ENV PATH="${PATH}:/usr/local/google-cloud-sdk/bin"
 
+# Refresh inherited security fixes when rebuilding this image.
+RUN apk upgrade --no-cache
+
 RUN set -ex; \
     \
     apk add --update --no-cache -t .backup-rundeps \
